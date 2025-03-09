@@ -19,3 +19,8 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+/* hola solo corre
+php artisan serve
+y en tu navegador escribe
+localhost:8000/dashboard
+ y listo */
