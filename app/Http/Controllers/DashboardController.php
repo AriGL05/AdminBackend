@@ -15,4 +15,13 @@ class DashboardController extends Controller
     {
         return view('dashboard');
     }
+    public function tablas()
+    {
+        return view('tablas');
+    }
+
+    public function aboutFilm()
+    {
+        return view('films/about_film');
+    }
 }

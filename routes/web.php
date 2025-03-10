@@ -24,3 +24,6 @@ php artisan serve
 y en tu navegador escribe
 localhost:8000/dashboard
  y listo */
+
+Route::get('/tablas', [DashboardController::class, 'tablas'])->name('tablas');
+Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
