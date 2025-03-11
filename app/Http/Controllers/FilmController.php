@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Film_Category;
 use Illuminate\Http\Request;
 use App\Models\Film;
+use App\Models\Language;
 
 class FilmController extends Controller
 {
     public function index()
     {
-        $films = Film::select('film_id', 'title', 'release_year', 'language_id')->with('language:language_id,name')->get();
+        $films = Film::select('film.film_id', 'film.title', 'film.release_year', 'language.name as language')
+            ->join('language', 'film.language_id', '=', 'language.language_id')
+            ->get();
         return response()->json($films);
     }
     public function store(Request $request)
@@ -72,7 +75,7 @@ class FilmController extends Controller
     }
     public function edit(int $id)
     {
-        $film = Film::find($id);
+        $film = Film::with('language:language_id,name')->find($id);
         if (!$film) {
             return response()->json(["msg" => "film no encontrado"], 404);
         }
