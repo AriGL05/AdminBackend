@@ -32,3 +32,7 @@ Route::post('/contact', [DashboardController::class, 'submitContact'])->name('co
 Route::fallback(function () {
     return redirect()->route('dashboard');
 });
+Route::get('/tablas', [DashboardController::class, 'tablas'])->name('tablas');
+Route::get('/newfilm', [DashboardController::class, 'newFilm'])->name('newfilm');
+Route::get('/newactor', [DashboardController::class, 'newActor'])->name('newactor');
+Route::get('/newcategory', [DashboardController::class, 'newCat'])->name('newcategory');
