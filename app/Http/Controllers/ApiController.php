@@ -2,26 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Actor;
 
 class ApiController extends Controller
 {
     public function getActors()
     {
-        $actors = DB::select("SELECT * FROM actor;");
+        $actors = Actor::all();
         return response()->json($actors);
     }
 
     public function getCategories()
     {
-        $cat = DB::select("SELECT name FROM category;");
+        $cat = Category::all();
         return response()->json($cat);
     }
 
     public function countFilmsCat()
     {
-        $cat = DB::select("SELECT name FROM category;");
-        return response()->json($cat);
+        $cat = Category::all();
+        $catcount = $cat->count();
+        return response()->json($catcount);
     }
 }
