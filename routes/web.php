@@ -26,4 +26,4 @@ localhost:8000/dashboard
  y listo */
 
 Route::get('/tablas', [DashboardController::class, 'tablas'])->name('tablas');
-Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
+Route::get('/newfilm', [DashboardController::class, 'newFilm'])->name('newfilm');

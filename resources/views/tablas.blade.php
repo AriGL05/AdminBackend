@@ -12,6 +12,8 @@
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Todos los objetos de cada apartado (ya sea Peliculas, actores, categorias, etc)</h3>
+<!--Aqui deberiamos validar q ruta usar, en caso de que el objeto que pasamos sea film, actor o category, pongo este de film por si acaso-->
+                <a href="{{ route('newfilm') }}" class="btn btn-success btn-sm" style="float: right;"><i class="fas fa-plus"></i> Agregar</a>
               </div>
               <!-- /.card-header -->
               <div class="card-body">
@@ -23,6 +25,7 @@
                     <th>Descripción</th>
                     <th>Año</th>
                     <th>Duración</th>
+                    <th>Options</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -33,6 +36,10 @@
                     </td>
                     <td>Win 95+</td>
                     <td> 4</td>
+                    <td>
+                    <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button>
+                    </td>
                   </tr>
                 </table>
               </div>

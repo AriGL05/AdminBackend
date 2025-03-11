@@ -20,8 +20,8 @@ class DashboardController extends Controller
         return view('tablas');
     }
 
-    public function aboutFilm()
+    public function newFilm()
     {
-        return view('films/about_film');
+        return view('films/new_film');
     }
 }
