@@ -46,7 +46,7 @@ class DashboardController extends Controller
         $yearlyMovieCounts = $this->countMoviesByYear($peliculas, $years);
 
         // Get top actors by movie count
-        usort($actores, function($a, $b) {
+        usort($actores, function ($a, $b) {
             return $b['peliculas'] - $a['peliculas'];
         });
         $topActors = array_slice($actores, 0, 3);
@@ -56,7 +56,7 @@ class DashboardController extends Controller
                 'peliculas' => count($peliculas),
                 'categorias' => count($categorias),
                 'actores' => count($actores),
-                'nuevosEstrenos' => count(array_filter($peliculas, function($movie) {
+                'nuevosEstrenos' => count(array_filter($peliculas, function ($movie) {
                     return $movie['anio'] == date('Y');
                 }))
             ],
@@ -306,5 +306,13 @@ class DashboardController extends Controller
         // For now, just redirect with a success message
 
         return redirect()->back()->with('success', 'Your message has been sent successfully!');
+    }
+    public function newActor()
+    {
+        return view('actors/new_actor');
+    }
+    public function newCat()
+    {
+        return view('categories/new_category');
     }
 }
