@@ -1,63 +1,117 @@
 @extends('layouts.admin')
 
-@section('title', 'Tablas')
+@section('title')
+    @if($tipo == 'peliculas')
+        Películas
+    @elseif($tipo == 'categorias')
+        Categorías
+    @elseif($tipo == 'actores')
+        Actores
+    @else
+        Tablas
+    @endif
+@endsection
 
 @section('content')
-<div class="wrapper">
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
+    <div class="row">
+        <div class="col-12">
             <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Todos los objetos de cada apartado (ya sea Peliculas, actores, categorias, etc)</h3>
-<!--Aqui deberiamos validar q ruta usar, en caso de que el objeto que pasamos sea film, actor o category, pongo este de film por si acaso-->
-                <a href="{{ route('newfilm') }}" class="btn btn-success btn-sm" style="float: right;"><i class="fas fa-plus"></i> Agregar</a>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body">
-                <table id="example2" class="table table-bordered table-hover">
-                  <thead>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        @if($tipo == 'peliculas')
+                            Listado de Películas
+                        @elseif($tipo == 'categorias')
+                            Listado de Categorías
+                        @elseif($tipo == 'actores')
+                            Listado de Actores
+                        @else
+                            Seleccione una opción del menú lateral
+                        @endif
+                    </h3>
 
-                  <tr>
-                    <th>Título</th>
-                    <th>Descripción</th>
-                    <th>Año</th>
-                    <th>Duración</th>
-                    <th>Options</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 4.0
-                    </td>
-                    <td>Win 95+</td>
-                    <td> 4</td>
-                    <td>
-                    <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <!-- /.card-body -->
+                    @if($tipo)
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Agregar
+                                @if($tipo == 'peliculas') Película
+                                @elseif($tipo == 'categorias') Categoría
+                                @elseif($tipo == 'actores') Actor
+                                @endif
+                            </button>
+                        </div>
+                    @endif
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    @if($tipo && !empty($data))
+                        <table class="table table-bordered table-striped dataTable">
+                            <thead>
+                                <tr>
+                                    @foreach($columns as $key => $label)
+                                        <th>{{ $label }}</th>
+                                    @endforeach
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($data as $item)
+                                    <tr>
+                                        @foreach($columns as $key => $label)
+                                            <td>
+                                                @if($key == 'duracion' && $tipo == 'peliculas')
+                                                    {{ $item[$key] }} min
+                                                @elseif($key == 'cantidad_peliculas' && $tipo == 'categorias')
+                                                    {{ $item[$key] }} películas
+                                                @elseif($key == 'peliculas' && $tipo == 'actores')
+                                                    {{ $item[$key] }} películas
+                                                @else
+                                                    {{ $item[$key] }}
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                            <a href="#" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                            <a href="#" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @elseif($tipo)
+                        <div class="alert alert-info">
+                            No hay datos disponibles para mostrar.
+                        </div>
+                    @else
+                        <div class="alert alert-info">
+                            Por favor, seleccione una opción del menú lateral (Películas, Categorías o Actores).
+                        </div>
+                    @endif
+                </div>
+                <!-- /.card-body -->
             </div>
             <!-- /.card -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+@endsection
 
-      </div>
-      <!-- /.container-fluid -->
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-  <!-- Control Sidebar -->
-  <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
-</div>
-
+@section('scripts')
+<script>
+    $(function () {
+        $('.dataTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+            }
+        });
+    });
+</script>
 @endsection

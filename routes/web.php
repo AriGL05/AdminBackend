@@ -14,9 +14,6 @@ use App\Http\Controllers\DashboardController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 /* hola solo corre
@@ -25,6 +22,16 @@ y en tu navegador escribe
 localhost:8000/dashboard
  y listo */
 
+Route::get('/tablas/{tipo?}', [DashboardController::class, 'tablas'])->name('tablas');
+Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
+
+// New contact routes
+Route::get('/contact', [DashboardController::class, 'contact'])->name('contact');
+Route::post('/contact', [DashboardController::class, 'submitContact'])->name('contact.submit');
+// Fallback route - Redirect all unknown routes to dashboard
+Route::fallback(function () {
+    return redirect()->route('dashboard');
+});
 Route::get('/tablas', [DashboardController::class, 'tablas'])->name('tablas');
 Route::get('/newfilm', [DashboardController::class, 'newFilm'])->name('newfilm');
 Route::get('/newactor', [DashboardController::class, 'newActor'])->name('newactor');

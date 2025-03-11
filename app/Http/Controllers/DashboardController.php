@@ -13,16 +13,299 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        return view('dashboard');
+        // Get the same data used in tables to build the dashboard
+        $peliculas = $this->getMockData('peliculas');
+        $categorias = $this->getMockData('categorias');
+        $actores = $this->getMockData('actores');
+
+        // Build dashboard data from the tables data
+        $dashboardData = $this->buildDashboardData($peliculas, $categorias, $actores);
+
+        return view('dashboard', compact('dashboardData'));
     }
-    public function tablas()
+
+    /**
+     * Build dashboard data from table data sources.
+     *
+     * @param array $peliculas
+     * @param array $categorias
+     * @param array $actores
+     * @return array
+     */
+    private function buildDashboardData($peliculas, $categorias, $actores)
     {
-        return view('tablas');
+        // Get recent movies (would be ordered by date in a real DB query)
+        $recentMovies = array_slice($peliculas, 0, 4);
+
+        // Extract category names and movie counts for the chart
+        $categoryLabels = array_column($categorias, 'nombre');
+        $categoryData = array_column($categorias, 'cantidad_peliculas');
+
+        // Extract years for movie distribution chart
+        $years = $this->extractYears($peliculas);
+        $yearlyMovieCounts = $this->countMoviesByYear($peliculas, $years);
+
+        // Get top actors by movie count
+        usort($actores, function ($a, $b) {
+            return $b['peliculas'] - $a['peliculas'];
+        });
+        $topActors = array_slice($actores, 0, 3);
+
+        return [
+            'counts' => [
+                'peliculas' => count($peliculas),
+                'categorias' => count($categorias),
+                'actores' => count($actores),
+                'nuevosEstrenos' => count(array_filter($peliculas, function ($movie) {
+                    return $movie['anio'] == date('Y');
+                }))
+            ],
+            'recentMovies' => $recentMovies,
+            'categoryDistribution' => [
+                'labels' => $categoryLabels,
+                'data' => $categoryData
+            ],
+            'yearlyReleases' => [
+                'labels' => $years,
+                'data' => $yearlyMovieCounts
+            ],
+            'topActors' => $topActors
+        ];
+    }
+
+    /**
+     * Extract distinct years from movie data.
+     *
+     * @param array $peliculas
+     * @return array
+     */
+    private function extractYears($peliculas)
+    {
+        $years = [];
+        foreach ($peliculas as $pelicula) {
+            if (!in_array($pelicula['anio'], $years)) {
+                $years[] = $pelicula['anio'];
+            }
+        }
+        sort($years);
+        return $years;
+    }
+
+    /**
+     * Count movies by year.
+     *
+     * @param array $peliculas
+     * @param array $years
+     * @return array
+     */
+    private function countMoviesByYear($peliculas, $years)
+    {
+        $counts = array_fill(0, count($years), 0);
+        foreach ($peliculas as $pelicula) {
+            $index = array_search($pelicula['anio'], $years);
+            if ($index !== false) {
+                $counts[$index]++;
+            }
+        }
+        return $counts;
+    }
+
+    /**
+     * Display tables based on the selected type.
+     *
+     * @param string|null $tipo
+     * @return \Illuminate\View\View
+     */
+    public function tablas($tipo = null)
+    {
+        // This will be replaced with database queries in the future
+        $data = $this->getMockData($tipo);
+
+        return view('tablas', [
+            'tipo' => $tipo,
+            'data' => $data,
+            'columns' => $this->getColumnsForType($tipo)
+        ]);
+    }
+
+    /**
+     * Get mock data for demonstration purposes.
+     * This will be replaced with database queries in the future.
+     *
+     * @param string|null $tipo
+     * @return array
+     */
+    private function getMockData($tipo)
+    {
+        switch ($tipo) {
+            case 'peliculas':
+                return [
+                    [
+                        'id' => 1,
+                        'titulo' => 'El Padrino',
+                        'anio' => '1972',
+                        'idioma_original' => 'Inglés',
+                        'duracion' => 175,
+                        'categoria' => 'Drama',
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg'
+                    ],
+                    [
+                        'id' => 2,
+                        'titulo' => 'Pulp Fiction',
+                        'anio' => '1994',
+                        'idioma_original' => 'Inglés',
+                        'duracion' => 154,
+                        'categoria' => 'Thriller',
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg'
+                    ],
+                    [
+                        'id' => 3,
+                        'titulo' => 'El Señor de los Anillos',
+                        'anio' => '2001',
+                        'idioma_original' => 'Inglés',
+                        'duracion' => 178,
+                        'categoria' => 'Fantasía',
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BN2EyZjM3NzUtNWUzMi00MTgxLWI0NTctMzY4M2VlOTdjZWRiXkEyXkFqcGdeQXVyNDUzOTQ5MjY@._V1_.jpg'
+                    ],
+                    [
+                        'id' => 4,
+                        'titulo' => 'Matrix',
+                        'anio' => '1999',
+                        'idioma_original' => 'Inglés',
+                        'duracion' => 136,
+                        'categoria' => 'Ciencia Ficción',
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg'
+                    ],
+                    [
+                        'id' => 5,
+                        'titulo' => 'Dune: Part Two',
+                        'anio' => '2024',
+                        'idioma_original' => 'Inglés',
+                        'duracion' => 166,
+                        'categoria' => 'Ciencia Ficción',
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BN2QyOGIyZDgtNzIzZC00MzJiLWI2Y2YtNjM3ZTMyYjCiYWMzXkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg'
+                    ],
+                ];
+
+            case 'categorias':
+                return [
+                    ['id' => 1, 'nombre' => 'Acción', 'cantidad_peliculas' => 42],
+                    ['id' => 2, 'nombre' => 'Drama', 'cantidad_peliculas' => 65],
+                    ['id' => 3, 'nombre' => 'Comedia', 'cantidad_peliculas' => 38],
+                    ['id' => 4, 'nombre' => 'Ciencia Ficción', 'cantidad_peliculas' => 25],
+                    ['id' => 5, 'nombre' => 'Terror', 'cantidad_peliculas' => 18],
+                    ['id' => 6, 'nombre' => 'Fantasía', 'cantidad_peliculas' => 22],
+                    ['id' => 7, 'nombre' => 'Romance', 'cantidad_peliculas' => 15],
+                    ['id' => 8, 'nombre' => 'Thriller', 'cantidad_peliculas' => 30],
+                ];
+
+            case 'actores':
+                return [
+                    [
+                        'id' => 1,
+                        'nombre' => 'Robert De Niro',
+                        'peliculas' => 18,
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BMjAwNDU3MzcyOV5BMl5BanBnXkFtZTcwMjc0MTIxMw@@._V1_UY317_CR13,0,214,317_AL_.jpg'
+                    ],
+                    [
+                        'id' => 2,
+                        'nombre' => 'Meryl Streep',
+                        'peliculas' => 16,
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BMTU4Mjk5MDExOF5BMl5BanBnXkFtZTcwOTU1MTMyMw@@._V1_.jpg'
+                    ],
+                    [
+                        'id' => 3,
+                        'nombre' => 'Antonio Banderas',
+                        'peliculas' => 12,
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BMTUyOTQ3NTYyNF5BMl5BanBnXkFtZTcwMTY2NjIzNQ@@._V1_UX214_CR0,0,214,317_AL_.jpg'
+                    ],
+                    [
+                        'id' => 4,
+                        'nombre' => 'Salma Hayek',
+                        'peliculas' => 10,
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BMzkyMTk2NzM2Ml5BMl5BanBnXkFtZTcwNDQ4MjYzMg@@._V1_UY317_CR7,0,214,317_AL_.jpg'
+                    ],
+                    [
+                        'id' => 5,
+                        'nombre' => 'Tom Hanks',
+                        'peliculas' => 20,
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BMTQ2MjMwNDA3Nl5BMl5BanBnXkFtZTcwMTA2NDY3NQ@@._V1_.jpg'
+                    ],
+                    [
+                        'id' => 6,
+                        'nombre' => 'Leonardo DiCaprio',
+                        'peliculas' => 15,
+                        'imagen' => 'https://m.media-amazon.com/images/M/MV5BMjI0MTg3MzI0M15BMl5BanBnXkFtZTcwMzQyODU2Mw@@._V1_.jpg'
+                    ],
+                ];
+
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * Get column definitions for each content type.
+     *
+     * @param string|null $tipo
+     * @return array
+     */
+    private function getColumnsForType($tipo)
+    {
+        switch ($tipo) {
+            case 'peliculas':
+                return [
+                    'id' => 'ID',
+                    'titulo' => 'Título',
+                    'anio' => 'Año',
+                    'idioma_original' => 'Idioma Original',
+                    'duracion' => 'Duración (min)',
+                    'categoria' => 'Categoría'
+                ];
+
+            case 'categorias':
+                return [
+                    'id' => 'ID',
+                    'nombre' => 'Nombre',
+                    'cantidad_peliculas' => 'Cantidad de Películas'
+                ];
+
+            case 'actores':
+                return [
+                    'id' => 'ID',
+                    'nombre' => 'Nombre',
+                    'peliculas' => 'Películas'
+                ];
+
+            default:
+                return [];
+        }
     }
 
     public function newFilm()
     {
         return view('films/new_film');
+    }
+
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    public function submitContact(Request $request)
+    {
+        // Validate the form data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        // Here you can add logic to send emails or store contact messages
+        // For now, just redirect with a success message
+
+        return redirect()->back()->with('success', 'Your message has been sent successfully!');
     }
     public function newActor()
     {
