@@ -64,11 +64,11 @@
                 </div>
                 <div class="card-body">
                     <address>
-                        <strong>Film Admin, Inc.</strong><br>
-                        123 Movie Street, Suite 100<br>
-                        Hollywood, CA 90210<br>
-                        Phone: (555) 123-4567<br>
-                        Email: contact@filmadmin.com
+                        <strong>UTT, ORG.</strong><br>
+                        448 Movie Street, Suite 884<br>
+                        Coahuila, TR 57208<br>
+                        Phone: (87) 124-8834<br>
+                        Email: movie@filmadmin.com
                     </address>
                 </div>
             </div>
