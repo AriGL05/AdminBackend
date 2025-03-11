@@ -22,6 +22,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/actors/all', [ApiController::class, 'getActors']);
+Route::get('/categories/all', [ApiController::class, 'getCategories']);
+Route::get('/languages/all', [ApiController::class, 'getLanguages']);
+
+
 Route::get('/actors', [ActorController::class, 'index']);
 Route::post('/actors', [ActorController::class, 'store']);
 Route::get('/actors/{id}/edit', [ActorController::class, 'edit']);
