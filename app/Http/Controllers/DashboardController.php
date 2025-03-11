@@ -24,4 +24,25 @@ class DashboardController extends Controller
     {
         return view('films/about_film');
     }
+
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    public function submitContact(Request $request)
+    {
+        // Validate the form data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        // Here you can add logic to send emails or store contact messages
+        // For now, just redirect with a success message
+
+        return redirect()->back()->with('success', 'Your message has been sent successfully!');
+    }
 }
