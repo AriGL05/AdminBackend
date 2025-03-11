@@ -24,4 +24,12 @@ class DashboardController extends Controller
     {
         return view('films/new_film');
     }
+    public function newActor()
+    {
+        return view('actors/new_actor');
+    }
+    public function newCat()
+    {
+        return view('categories/new_category');
+    }
 }
