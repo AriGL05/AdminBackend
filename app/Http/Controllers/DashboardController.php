@@ -282,9 +282,9 @@ class DashboardController extends Controller
         }
     }
 
-    public function aboutFilm()
+    public function newFilm()
     {
-        return view('films/about_film');
+        return view('films/new_film');
     }
 
     public function contact()

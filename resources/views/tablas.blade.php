@@ -16,6 +16,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
+                <a href="{{ route('newfilm') }}" class="btn btn-success btn-sm" style="float: right;"><i class="fas fa-plus"></i> Agregar</a>
                 <div class="card-header">
                     <h3 class="card-title">
                         @if($tipo == 'peliculas')
