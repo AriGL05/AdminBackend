@@ -10,7 +10,7 @@ class FilmController extends Controller
 {
     public function index()
     {
-        $films = Film::with('language')->get();
+        $films = Film::select('film_id', 'title', 'release_year', 'language_id')->with('language:language_id,name')->get();
         return response()->json($films);
     }
     public function store(Request $request)
