@@ -27,3 +27,7 @@ localhost:8000/dashboard
 
 Route::get('/tablas', [DashboardController::class, 'tablas'])->name('tablas');
 Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
+
+// New contact routes
+Route::get('/contact', [DashboardController::class, 'contact'])->name('contact');
+Route::post('/contact', [DashboardController::class, 'submitContact'])->name('contact.submit');
