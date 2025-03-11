@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/actors', [ApiController::class, 'getActors']);
+Route::get('/films', [ApiController::class, 'getFilms']);
 
 Route::get('/categories', [ApiController::class, 'getCategories']);
 Route::get('/categories/count', [ApiController::class, 'countFilmsCat']);
