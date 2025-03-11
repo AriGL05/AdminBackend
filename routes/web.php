@@ -28,7 +28,6 @@ Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
 // New contact routes
 Route::get('/contact', [DashboardController::class, 'contact'])->name('contact');
 Route::post('/contact', [DashboardController::class, 'submitContact'])->name('contact.submit');
-
 // Fallback route - Redirect all unknown routes to dashboard
 Route::fallback(function () {
     return redirect()->route('dashboard');
