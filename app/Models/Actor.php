@@ -19,4 +19,9 @@ class Actor extends Model
         'last_name',
         'last_update',
     ];
+
+    public function films()
+    {
+        return $this->belongsToMany(Film::class, 'film_actor', 'actor_id', 'film_id');
+    }
 }
