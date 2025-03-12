@@ -9,6 +9,7 @@ use App\Models\Film;
 use App\Models\Film_Actor;
 use App\Models\Film_Text;
 use App\Models\Language;
+use App\Models\Rental;
 
 class FilmController extends Controller
 {
@@ -86,10 +87,13 @@ class FilmController extends Controller
     }
     public function destroy(int $id)
     {
-        Log::info($id);
         $film = Film::find($id);
         if (!$film) {
             return response()->json(["msg" => "film no encontrado"], 404);
+        }
+        $inventories = Inventory::where('film_id', $id)->get();
+        foreach ($inventories as $inventory) {
+            Rental::where('inventory_id', $inventory->inventory_id)->delete();
         }
         Inventory::where('film_id', $id)->delete();
         Film_Actor::where('film_id', $id)->delete();

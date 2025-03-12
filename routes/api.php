@@ -37,7 +37,7 @@ Route::delete('/actors/{id}', [ActorController::class, 'destroy']);
 //Route::post('/films', [FilmController::class, 'store']);
 //Route::get('/films/{id}/edit', [FilmController::class, 'edit']);
 //Route::put('/films/{id}/edit', [FilmController::class, 'update']);
-Route::delete('/films/{id}', [FilmController::class, 'destroy']);
+//Route::delete('/films/{id}', [FilmController::class, 'destroy']);
 
 //categories
 Route::get('/categories', [CategoryController::class, 'index']);
