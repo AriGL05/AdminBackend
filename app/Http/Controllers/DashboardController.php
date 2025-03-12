@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Language;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -284,7 +286,9 @@ class DashboardController extends Controller
 
     public function newFilm()
     {
-        return view('films/new_film');
+        $languages = Language::all();
+        $categories = Category::all();
+        return view('films/new_film', ['languages' => $languages, 'categories' =>$categories]);
     }
 
     public function contact()
