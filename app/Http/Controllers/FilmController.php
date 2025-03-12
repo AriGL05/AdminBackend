@@ -90,4 +90,13 @@ class FilmController extends Controller
         $film->delete();
     }
 
+    public function about(int $id)
+    {
+        $film = Film::find($id);
+        if (!$film) {
+            abort(404, 'Film not found');
+        }
+        return view('films/about_film', ['film' => $film]);
+    }
+
 }

@@ -37,7 +37,9 @@ Route::fallback(function () {
     return redirect()->route('dashboard');
 });
 Route::get('/newfilm', [DashboardController::class, 'newFilm'])->name('newfilm');
+Route::get('/aboutfilm/{id}', [FilmController::class,'about'])->name('aboutfilm');
 Route::get('/newactor', [DashboardController::class, 'newActor'])->name('newactor');
+Route::get('/aboutactor/{id}', [ActorController::class,'about' ])->name('aboutactor');
 Route::get('/newcategory', [DashboardController::class, 'newCat'])->name('newcategory');
 
 

@@ -188,6 +188,7 @@
 
   function generateTableRows(data) {
     const tableBody = document.getElementById('table-body');
+    const tipo = '{{ $tipo ?? "" }}';
     tableBody.innerHTML = '';
 
     data.forEach(item => {
@@ -210,24 +211,51 @@
         }
       });
 
-      // Add action buttons
-      const actionsCell = document.createElement('td');
-      actionsCell.className = 'text-center';
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'text-center';
+    
+    if (tipo === 'peliculas') {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm btn-info mr-1';
+            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+            editBtn.onclick = function() { editItem(item.film_id); };
+            actionsCell.appendChild(editBtn);
 
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-info mr-1';
-      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-      editBtn.onclick = function() { editItem(item.id); };
-      actionsCell.appendChild(editBtn);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.onclick = function() { deleteItem(item.film_id); };
+            actionsCell.appendChild(deleteBtn);
+        } else if (tipo === 'actores') {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm btn-info mr-1';
+            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+            editBtn.onclick = function() { editItem(item.id); };
+            actionsCell.appendChild(editBtn);
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn btn-sm btn-danger';
-      deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-      deleteBtn.onclick = function() { deleteItem(item.id); };
-      actionsCell.appendChild(deleteBtn);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.onclick = function() { deleteItem(item.id); };
+            actionsCell.appendChild(deleteBtn);
+        } else if (tipo === 'categorias') {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm btn-info mr-1';
+            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+            editBtn.onclick = function() { editItem(item.category_id); }; 
+            actionsCell.appendChild(editBtn);
 
-      row.appendChild(actionsCell);
-      tableBody.appendChild(row);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.onclick = function() { deleteItem(item.category_id); }; 
+            actionsCell.appendChild(deleteBtn);
+        }
+
+
+
+    row.appendChild(actionsCell);
+    tableBody.appendChild(row);
     });
   }
 
@@ -237,10 +265,12 @@
 
     switch (tipo) {
       case 'peliculas':
-        window.location.href = `/films/${id}/edit`;
+        const film_id = Number(id)
+        window.location.href = `/aboutfilm/${film_id}`;
         break;
       case 'actores':
-        window.location.href = `/actors/${id}/edit`;
+        const actor_id = Number(id)
+        window.location.href = `/aboutactor/${actor_id}`;
         break;
       case 'categorias':
         window.location.href = `/categories/${id}/edit`;

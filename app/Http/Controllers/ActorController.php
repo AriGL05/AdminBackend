@@ -63,4 +63,13 @@ class ActorController extends Controller
         $actor->delete();
     }
 
+    public function about(int $id)
+    {
+        $actor = Actor::find($id);
+        if (!$actor) {
+            abort(404, 'Actor not found');
+        }
+        return view('actors/about_actor', ['actor' => $actor]);
+    }
+
 }
