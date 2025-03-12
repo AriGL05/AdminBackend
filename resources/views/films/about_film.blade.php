@@ -49,11 +49,11 @@
                         </div>
                         <div class="form-group">
                             <label for="duracion">Duración (minutos)</label>
-                            <input type="number" class="form-control" id="length" value="{{ $film->lenght}}">
+                            <input type="number" class="form-control" id="length" value="{{ $film->length}}">
                         </div>
                         <div class="form-group">
                             <label for="sinopsis">Sinopsis</label>
-                            <textarea class="form-control" id="description" rows="3" value="{{ $film->desription}}"></textarea>
+                            <textarea class="form-control" id="description" rows="3" value="{{ $film->description }}">{{ $film->description }}</textarea>
                         </div>
                     </div>
                     </div>

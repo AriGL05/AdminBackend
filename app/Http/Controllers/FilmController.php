@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Film_Category;
 use App\Models\Inventory;
 use Illuminate\Http\Request;
@@ -113,6 +114,9 @@ class FilmController extends Controller
         }
         $language = Language::find($film->language_id);
         $languages = Language::all();
+
+        $categories = Category::all();
+        $film_category = Film_Category::find($film->film_id);
 
         return view('films/about_film', ['film' => $film, 'language' => $language, 'languages'=>$languages]);
     }
