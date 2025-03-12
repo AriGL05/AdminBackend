@@ -96,7 +96,10 @@ class FilmController extends Controller
         if (!$film) {
             abort(404, 'Film not found');
         }
-        return view('films/about_film', ['film' => $film]);
+        $language = Language::find($film->language_id);
+        $languages = Language::all();
+
+        return view('films/about_film', ['film' => $film, 'language' => $language, 'languages'=>$languages]);
     }
 
 }
