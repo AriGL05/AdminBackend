@@ -83,3 +83,10 @@ Route::post('/address', [AddressController::class, 'store']);
 Route::get('/address/{id}/edit', [AddressController::class, 'edit']);
 Route::put('/address/{id}/edit', [AddressController::class, 'update']);
 Route::delete('/address/{id}', [AddressController::class, 'destroy']);
+
+// Add these fallback routes to handle any format issues with IDs
+Route::delete('/films/{id}/delete', [FilmController::class, 'destroy']);
+Route::delete('/actors/{id}/delete', [ActorController::class, 'destroy']);
+Route::delete('/categories/{id}/delete', [CategoryController::class, 'destroy']);
+Route::delete('/customers/{id}/delete', [CustomerController::class, 'destroy']);
+Route::delete('/address/{id}/delete', [AddressController::class, 'destroy']);
