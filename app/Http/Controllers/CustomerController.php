@@ -4,57 +4,54 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
-
+use App\Models\Rental;
+use App\Models\Payment;
 
 class CustomerController extends Controller
 {
     public function index()
     {
         $customers = Customer::all();
-        return response()->json($customers); // Devolver los datos como respuesta JSON
+        return response()->json($customers);
     }
-
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|email',
-            'address_id' => 'required|integer',
-            'store_id' => 'required|integer',
+
+        $request->validated();
+
+        $customer = Customer::create([
+            'store_id' => $request->input('store_id'),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'address_id' => $request->input('address_id'),
+            'create_date' => now(),
         ]);
 
-        $customer = Customer::create($validated);
-        return response()->json($customer, 201); // Retornar el cliente creado
+        return redirect() - back();
     }
-
-    public function edit($id)
+    public function update(Request $request, int $id)
     {
-        $customer = Customer::findOrFail($id);
-        return response()->json($customer); // Retorna el cliente encontrado
+        $cust = Customer::find($id);
+        if (!$cust) {
+            return response()->json(["msg" => "Customer no encontrado"], 404);
+        }
+        $cust->store_id = $request->input('store_id');
+        $cust->first_name = $request->input('first_name');
+        $cust->last_name = $request->input('last_name');
+        $cust->email = $request->input('email');
+        $cust->address_id = $request->input('address_id');
+        $cust->save();
     }
-
-    public function update(Request $request, $id)
+    public function destroy(int $id)
     {
-        $validated = $request->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|email',
-            'address_id' => 'required|integer',
-            'store_id' => 'required|integer',
-        ]);
+        $cust = Customer::find($id);
+        if (!$cust) {
+            return response()->json(["msg" => "Customer no encontrado"], 404);
+        }
+        Rental::where('customer_id', $id)->delete();
 
-        $customer = Customer::findOrFail($id);
-        $customer->update($validated);
-
-        return response()->json($customer); // Retorna el cliente actualizado
-    }
-
-    public function destroy($id)
-    {
-        $customer = Customer::findOrFail($id);
-        $customer->delete();
-
-        return response()->json(['message' => 'Customer deleted successfully']); // Confirmación de eliminación
+        Payment::where('customer_id', $id)->delete();
+        $cust->delete();
     }
 }
