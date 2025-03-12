@@ -71,3 +71,9 @@ Route::post('/customers', [CustomerController::class, 'store']);
 Route::get('/customers/{id}/edit', [CustomerController::class, 'edit']);
 Route::put('/customers/{id}/edit', [CustomerController::class, 'update']);
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+
+Route::get('/address', [CustomerController::class, 'index']);
+Route::post('/address', [CustomerController::class, 'store']);
+Route::get('/address/{id}/edit', [CustomerController::class, 'edit']);
+Route::put('/address/{id}/edit', [CustomerController::class, 'update']);
+Route::delete('/address/{id}', [CustomerController::class, 'destroy']);
