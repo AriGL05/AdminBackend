@@ -10,6 +10,7 @@ use App\Models\Film_Actor;
 use App\Models\Film_Text;
 use App\Models\Language;
 use App\Models\Rental;
+use Illuminate\Support\Facades\Log;
 
 class FilmController extends Controller
 {
@@ -29,24 +30,26 @@ class FilmController extends Controller
             'length' => 'required',
             'category_id' => 'required',
         ]);
-        $film = new Film();
-        $film->title = $request->get('title');
-        $film->release_year = $request->get('release_year');
-        $film->description = "A movie lol";
-        $film->language_id = $request->get('language_id');
-        $film->rental_duration = 4;
-        $film->length = $request->get('length');
-        $film->rental_rate = 0.99;
-        $film->replacement_cost = 20.50;
-        $film->save();
+        $film = Film::create([
+            'title' => $request->get('title'),
+            'release_year' => $request->get('release_year'),
+            'description' => "A movie lol",
+            'language_id' => $request->get('language_id'),
+            'rental_duration' => 4,
+            'length' => $request->get('length'),
+            'rental_rate' => 0.99,
+            'replacement_cost' => 20.50,
+        ]);
 
-        $filmId = $film->id;
+        Log::info($film);
+
+        $filmId = $film->film_id;
 
         $connect = new Film_Category();
         $connect->film_id = $filmId;
         $connect->category_id = $request->get('category_id');
         $connect->save();
-
+        return redirect()->back();
     }
     public function update(Request $request, int $id)
     {
@@ -71,7 +74,7 @@ class FilmController extends Controller
         $film->replacement_cost = 20.50;
         $film->save();
 
-        $connect = Film_Category::find($film->id);
+        $connect = Film_Category::find($film->film_id);
 
         $connect->film_id = $film->id;
         $connect->category_id = $request->get('category_id');
