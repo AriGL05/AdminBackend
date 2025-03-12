@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Film_Actor;
 use Illuminate\Http\Request;
 use App\Models\Actor;
 
@@ -60,6 +61,7 @@ class ActorController extends Controller
         if (!$actor) {
             return response()->json(["msg" => "Actor no encontrado"], 404);
         }
+        Film_Actor::where('film_id', $id)->delete();
         $actor->delete();
     }
 

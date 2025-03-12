@@ -6,6 +6,7 @@ use App\Http\Controllers\ActorController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,3 +65,15 @@ Route::post('/categories', [CategoryController::class, 'store']);
 Route::get('/categories/{id}/edit', [CategoryController::class, 'edit']);
 Route::put('/categories/{id}/edit', [CategoryController::class, 'update']);
 Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+Route::get('/customers', [CustomerController::class, 'index']);
+Route::post('/customers', [CustomerController::class, 'store']);
+Route::get('/customers/{id}/edit', [CustomerController::class, 'edit']);
+Route::put('/customers/{id}/edit', [CustomerController::class, 'update']);
+Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+
+Route::get('/address', [CustomerController::class, 'index']);
+Route::post('/address', [CustomerController::class, 'store']);
+Route::get('/address/{id}/edit', [CustomerController::class, 'edit']);
+Route::put('/address/{id}/edit', [CustomerController::class, 'update']);
+Route::delete('/address/{id}', [CustomerController::class, 'destroy']);
