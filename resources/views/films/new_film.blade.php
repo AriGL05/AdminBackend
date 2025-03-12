@@ -24,62 +24,56 @@
 <<<<<<< Updated upstream
             </div>
             <div class="card-body">
+                <form method="POST" action="/films">
+                @csrf
+                @method('POST')
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="titulo">Título</label>
-                            <input type="text" class="form-control" id="titulo" placeholder="">
+                            <input type="text" class="form-control" id="title" placeholder="">
                         </div>
                         <div class="form-group">
-                            <label for="genero">Categoría/Género</label>
-                            <input type="text" class="form-control" id="genero" placeholder="">
-                        </div>
-                        <div class="form-group">
-                            <label for="anio">Idioma</label>
-                            <select class="form-control select2" style="width: 100%;">
-                            <!--Lista de idiomas de la bd
-                            foreach (languages as language)
-                            <option value=language.language_id >language.name</option>
-                            -->
-                                <option selected="selected">idioma 1</option>
-                                <option>idioma 2</option>
-                                <option>idioma 3</option>
+                            <label for="language">Idioma</label>
+                            <select id="language_id" class="form-control select2" style="width: 100%;">
+                            @foreach ($languages as $language)
+                                <option value="{{ $language->language_id }}">{{ $language->name }}</option>
+                            @endforeach
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="anio">Categoria</label>
-                                <select class="form-control select2" style="width: 100%;">
-                                 <!--Lista de categorias de la bd
-                                foreach (categories as category)
-                                <option value=category.category_id >category.name</option>
-                                -->
-                                    <option selected="selected">categoria 1</option>
-                                    <option>categoria 2</option>
-                                    <option>categoria 3</option>
+                            <label for="category">Categoría/Género</label>
+                                <select name="category_id" class="form-control select2" style="width: 100%;">
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->category_id }}">{{ $category->name }}</option>
+                                @endforeach
                                 </select>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="anio">Año de Lanzamiento</label>
-                            <input type="number" class="form-control" id="anio" placeholder="">
+                            <input type="number" class="form-control" id="release_year" placeholder="">
                         </div>
                         <div class="form-group">
                             <label for="duracion">Duración (minutos)</label>
-                            <input type="number" class="form-control" id="duracion" placeholder="">
+                            <input type="number" class="form-control" id="length" placeholder="">
                         </div>
                         <div class="form-group">
                             <label for="sinopsis">Sinopsis</label>
-                            <textarea class="form-control" id="sinopsis" rows="3" placeholder="Sobre esta película.."></textarea>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Sobre esta película.."></textarea>
                         </div>
                     </div>
                     </div>
                 </div>
-            <div class="card-footer">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+
         </div>
-        </div>
+    <div style="height: 15px">
+    </div>
 </section>
 =======
                 <div class="card-body">
