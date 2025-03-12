@@ -28,13 +28,13 @@ class FilmController extends Controller
         'language_id' => 'required',
         'length' => 'required',
         'category_id' => 'required',
-        'description' => 'nullable|string' // Se agrega para permitir descripción opcional
+        'description' => 'nullable|string' 
     ]);
 
     $film = new Film();
     $film->title = $request->get('title');
     $film->release_year = $request->get('release_year');
-    $film->description = $request->get('description'); // Ahora se toma del request
+    $film->description = $request->get('description'); 
     $film->language_id = $request->get('language_id');
     $film->rental_duration = 4;
     $film->length = $request->get('length');
@@ -42,7 +42,7 @@ class FilmController extends Controller
     $film->replacement_cost = 20.50;
     $film->save();
 
-    $filmId = $film->film_id; // Se usa film_id en lugar de id
+    $filmId = $film->film_id; 
 
     $connect = new Film_Category();
     $connect->film_id = $filmId;
@@ -78,7 +78,7 @@ public function update(Request $request, int $id)
     $film->replacement_cost = 20.50;
     $film->save();
 
-    // Corregido: Buscar la categoría correctamente
+  
     $connect = Film_Category::where('film_id', $film->film_id)->first();
     if ($connect) {
         $connect->category_id = $request->get('category_id');
@@ -103,28 +103,27 @@ public function update(Request $request, int $id)
     }
     public function destroy(int $id)
 {
-    Log::info($id); // Registra el ID para depuración
+    Log::info($id); 
 
-    // Buscar la película
     $film = Film::find($id);
     if (!$film) {
         return response()->json(["msg" => "Película no encontrada"], 404);
     }
 
     try {
-        // Eliminar registros relacionados
+       
         Inventory::where('film_id', $id)->delete();
         Film_Actor::where('film_id', $id)->delete();
         Film_Text::where('film_id', $id)->delete();
         Film_Category::where('film_id', $id)->delete();
 
-        // Eliminar la película
+     
         $film->delete();
 
-        // Devolver una respuesta JSON exitosa
+       
         return response()->json(["msg" => "Película eliminada correctamente"], 200);
     } catch (\Exception $e) {
-        // Manejar errores
+        
         Log::error("Error al eliminar la película: " . $e->getMessage());
         return response()->json(["msg" => "Error al eliminar la película"], 500);
     }

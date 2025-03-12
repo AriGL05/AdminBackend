@@ -20,7 +20,7 @@ class CategoryController extends Controller
         ]);
 
         $cat = new Category();
-        $cat->name = $request->get('name'); // Corregido a 'name'
+        $cat->name = $request->get('name'); 
         $cat->save();
 
         return redirect()->back()->with('success', 'Categoría creada exitosamente');
@@ -30,17 +30,17 @@ class CategoryController extends Controller
     {
         $cat = Category::find($id);
         if (!$cat) {
-            return redirect()->back()->with('error', 'Categoría no encontrada'); // Redirige con un mensaje de error
+            return redirect()->back()->with('error', 'Categoría no encontrada'); 
         }
     
         $request->validate([
-            "name" => "required|min:3|max:25", // Validación correcta
+            "name" => "required|min:3|max:25", 
         ]);
     
-        $cat->name = $request->get('name'); // Corregido a 'name'
+        $cat->name = $request->get('name'); 
         $cat->save();
     
-        return redirect()->back()->with('success', 'Categoría actualizada exitosamente'); // Redirige con un mensaje de éxito
+        return redirect()->back()->with('success', 'Categoría actualizada exitosamente'); 
     }
 
     public function edit(int $id)
@@ -59,13 +59,13 @@ class CategoryController extends Controller
         return response()->json(['error' => 'Categoría no encontrada'], 404);
     }
 
-    // Eliminar registros relacionados en film_category (si es necesario)
+ 
     $cat->film_Category()->delete();
 
-    // Eliminar la categoría
+   
     $cat->delete();
 
-    // Devolver una respuesta JSON exitosa
+
     return response()->json(['success' => 'Categoría eliminada exitosamente'], 200);
 }
 }

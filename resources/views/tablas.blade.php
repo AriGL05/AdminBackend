@@ -126,7 +126,7 @@
       return;
     }
 
-    // Fetch data from the API
+    
     fetch(endpoint)
       .then(response => {
         if (!response.ok) {
@@ -135,17 +135,17 @@
         return response.json();
       })
       .then(data => {
-        // Hide loading indicator
+        
         document.getElementById('loading').classList.add('d-none');
 
         if (Array.isArray(data) && data.length > 0) {
-          // Generate table headers
+          
           generateTableHeaders(data[0]);
 
-          // Generate table rows
+          
           generateTableRows(data);
 
-          // Show the table
+         
           document.getElementById('table-container').classList.remove('d-none');
         } else {
           document.getElementById('no-data').classList.remove('d-none');
@@ -162,23 +162,23 @@
     const headerRow = document.getElementById('table-headers');
     headerRow.innerHTML = '';
 
-    // Create headers based on object keys
+    
     Object.keys(item).forEach(key => {
-      if (key !== 'imagen') { // Skip image URLs in headers
+      if (key !== 'imagen') { 
         const th = document.createElement('th');
         th.textContent = formatHeaderName(key);
         headerRow.appendChild(th);
       }
     });
 
-    // Add actions column
+ 
     const actionsHeader = document.createElement('th');
     actionsHeader.textContent = 'Acciones';
     headerRow.appendChild(actionsHeader);
   }
 
   function formatHeaderName(key) {
-    // Convert snake_case or camelCase to Title Case
+   
     return key
       .replace(/_/g, ' ')
       .replace(/([A-Z])/g, ' $1')
@@ -190,40 +190,40 @@
     const tableBody = document.getElementById('table-body');
     tableBody.innerHTML = '';
 
-    const tipo = '{{ $tipo ?? "" }}'; // Obtener el tipo de dato (categorias, peliculas, actores)
+    const tipo = '{{ $tipo ?? "" }}'; 
 
     data.forEach(item => {
         const row = document.createElement('tr');
 
-        // Determinar el ID según el tipo de dato
+        
         let itemId;
         switch (tipo) {
             case 'categorias':
-                itemId = item.category_id; // ID para categorías
+                itemId = item.category_id;
                 break;
             case 'peliculas':
-                itemId = item.film_id || item.id; // ID para películas
+                itemId = item.film_id || item.id; 
                 break;
             case 'actores':
-                itemId = item.actor_id || item.id; // ID para actores
+                itemId = item.actor_id || item.id; 
                 break;
             default:
                 console.error('Tipo de dato no válido:', tipo);
                 return;
         }
 
-        // Verificar que el ID esté definido
+     
         if (!itemId) {
             console.error('El item no tiene un ID válido:', item);
             return;
         }
 
-        // Generar las celdas de la fila
+      
         Object.entries(item).forEach(([key, value]) => {
-            if (key !== 'imagen') { // Skip image URLs in regular cells
+            if (key !== 'imagen') { 
                 const cell = document.createElement('td');
 
-                // Formatear el valor según la clave
+                
                 if (key === 'duracion') {
                     cell.textContent = `${value} min`;
                 } else if (key === 'anio' || key === 'year') {
@@ -236,22 +236,22 @@
             }
         });
 
-        // Agregar botones de acciones
+      
         const actionsCell = document.createElement('td');
         actionsCell.className = 'text-center';
 
         const editBtn = document.createElement('button');
         editBtn.className = 'btn btn-sm btn-info mr-1';
         editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-        editBtn.onclick = function() { editItem(itemId); }; // Usar el ID correcto
+        editBtn.onclick = function() { editItem(itemId); }; 
         actionsCell.appendChild(editBtn);
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-sm btn-danger';
         deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
         deleteBtn.onclick = function() { 
-            console.log('ID del elemento a eliminar:', itemId); // Depuración
-            deleteItem(itemId); // Usar el ID correcto
+            console.log('ID del elemento a eliminar:', itemId); 
+            deleteItem(itemId); 
         };
         actionsCell.appendChild(deleteBtn);
 
@@ -304,7 +304,7 @@ function deleteItem(id) {
             return;
     }
 
-    // Obtener el token CSRF
+   
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     if (!csrfToken) {
@@ -317,7 +317,7 @@ function deleteItem(id) {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken // Usar el token CSRF
+            'X-CSRF-TOKEN': csrfToken 
         }
     })
     .then(response => {
@@ -327,13 +327,13 @@ function deleteItem(id) {
         return response.json();
     })
     .then(() => {
-        // Recargar los datos después de eliminar
+       
         fetchData(tipo);
-        alert('Elemento eliminado correctamente'); // Mensaje de éxito
+        alert('Elemento eliminado correctamente'); 
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error al eliminar el elemento'); // Mensaje de error
+        alert('Error al eliminar el elemento'); 
     });
 }
 </script>
