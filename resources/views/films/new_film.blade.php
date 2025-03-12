@@ -12,70 +12,15 @@
 
                     <div class="card-tools">
                         <!--
-                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                                    <i class="fas fa-minus"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                                -->
+                                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                            -->
                     </div>
                 </div>
-<<<<<<< Updated upstream
-            </div>
-            <div class="card-body">
-                <form method="POST" action="/films">
-                @csrf
-                @method('POST')
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="titulo">Título</label>
-                            <input type="text" class="form-control" id="title" placeholder="">
-                        </div>
-                        <div class="form-group">
-                            <label for="language">Idioma</label>
-                            <select id="language_id" class="form-control select2" style="width: 100%;">
-                            @foreach ($languages as $language)
-                                <option value="{{ $language->language_id }}">{{ $language->name }}</option>
-                            @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="category">Categoría/Género</label>
-                                <select name="category_id" class="form-control select2" style="width: 100%;">
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->category_id }}">{{ $category->name }}</option>
-                                @endforeach
-                                </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="anio">Año de Lanzamiento</label>
-                            <input type="number" class="form-control" id="release_year" placeholder="">
-                        </div>
-                        <div class="form-group">
-                            <label for="duracion">Duración (minutos)</label>
-                            <input type="number" class="form-control" id="length" placeholder="">
-                        </div>
-                        <div class="form-group">
-                            <label for="sinopsis">Sinopsis</label>
-                            <textarea class="form-control" id="description" rows="3" placeholder="Sobre esta película.."></textarea>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-
-        </div>
-    <div style="height: 15px">
-    </div>
-</section>
-=======
                 <div class="card-body">
                     <form method="POST" action="/films">
                         @csrf
@@ -112,8 +57,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="duracion">Duración (minutos)</label>
-                                    <input type="number" class="form-control" id="length" length="release_year"
-                                        placeholder="" required>
+                                    <input type="number" class="form-control" id="length" name="length" placeholder=""
+                                        required>
                                 </div>
                                 <div class="form-group">
                                     <label for="sinopsis">Sinopsis</label>
@@ -132,6 +77,5 @@
             <div style="height: 15px">
             </div>
     </section>
->>>>>>> Stashed changes
 
 @endsection

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Film_Category;
 use Illuminate\Http\Request;
 use App\Models\Category;
 
@@ -18,7 +19,7 @@ class CategoryController extends Controller
             "name" => "required|min:3|max:25",
         ]);
         $cat = new Category();
-        $cat->first_name = $request->get('first_name');
+        $cat->name = $request->get('name');
         $cat->save();
     }
     public function update(Request $request, int $id)
@@ -30,7 +31,7 @@ class CategoryController extends Controller
         $request->validate([
             "name" => "required|min:3|max:25",
         ]);
-        $cat->first_name = $request->get('first_name');
+        $cat->name = $request->get('name');
         $cat->save();
     }
     public function edit(int $id)
@@ -47,6 +48,7 @@ class CategoryController extends Controller
         if (!$cat) {
             return response()->json(["msg" => "Catergory no encontrado"], 404);
         }
+        Film_Category::where('film_id', $id)->delete();
         $cat->delete();
     }
 }
