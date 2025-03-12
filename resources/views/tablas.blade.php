@@ -26,6 +26,12 @@
                       case 'categorias':
                         $addRoute = route('newcategory');
                         break;
+                      case 'customers':
+                        $addRoute = route('newcustomer');
+                        break;
+                      case 'address':
+                        $addRoute = route('newaddress');
+                        break;
                     }
                   @endphp
                   <a href="{{ $addRoute }}" class="btn btn-primary">
@@ -47,7 +53,7 @@
                   Error al cargar los datos. Por favor, intente nuevamente.
                 </div>
 
-                <div id="table-container" class="d-none">
+                <div id="table-container" class="table-responsive d-none">
                   <table id="data-table" class="table table-bordered table-hover">
                     <thead>
                       <tr id="table-headers">
@@ -108,13 +114,19 @@
     let endpoint;
     switch (tipo) {
       case 'peliculas':
-        endpoint = '/api/films';
+        endpoint = '/films';
         break;
       case 'actores':
-        endpoint = '/api/actors';
+        endpoint = '/actors';
         break;
       case 'categorias':
-        endpoint = '/api/categories';
+        endpoint = '/categories';
+        break;
+      case 'customers':
+        endpoint = '/customers';
+        break;
+      case 'address':
+        endpoint = '/address';
         break;
       default:
         endpoint = null;
@@ -245,6 +257,12 @@
       case 'categorias':
         window.location.href = `/categories/${id}/edit`;
         break;
+      case 'customers':
+        window.location.href = `/customers/${id}/edit`;
+        break;
+      case 'address':
+        window.location.href = `/address/${id}/edit`;
+        break;
     }
   }
 
@@ -258,13 +276,19 @@
 
     switch (tipo) {
       case 'peliculas':
-        endpoint = `/api/films/${id}`;
+        endpoint = `/films/${id}`;
         break;
       case 'actores':
-        endpoint = `/api/actors/${id}`;
+        endpoint = `/actors/${id}`;
         break;
       case 'categorias':
-        endpoint = `/api/categories/${id}`;
+        endpoint = `/categories/${id}`;
+        break;
+      case 'customers':
+        endpoint = `/customers/${id}`;
+        break;
+      case 'address':
+        endpoint = `/address/${id}`;
         break;
       default:
         return;

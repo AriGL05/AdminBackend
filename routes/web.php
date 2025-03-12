@@ -7,6 +7,7 @@ use App\Http\Controllers\FilmController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\AddressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,12 +41,15 @@ Route::fallback(function () {
 Route::get('/newfilm', [DashboardController::class, 'newFilm'])->name('newfilm');
 Route::get('/newactor', [DashboardController::class, 'newActor'])->name('newactor');
 Route::get('/newcategory', [DashboardController::class, 'newCat'])->name('newcategory');
+Route::get('/newcustomer', [DashboardController::class, 'newCustomer'])->name('newcustomer');
+Route::get('/newaddress', [DashboardController::class, 'newAddress'])->name('newaddress');
 
 
 //--Info--//
 Route::get('/actors/all', [ApiController::class, 'getActors']);
 Route::get('/categories/all', [ApiController::class, 'getCategories']);
 Route::get('/languages/all', [ApiController::class, 'getLanguages']);
+Route::get('/api/cities', [ApiController::class, 'getCities']);
 
 
 Route::get('/actors', [ActorController::class, 'index']);
@@ -72,8 +76,8 @@ Route::get('/customers/{id}/edit', [CustomerController::class, 'edit']);
 Route::put('/customers/{id}/edit', [CustomerController::class, 'update']);
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
 
-Route::get('/address', [CustomerController::class, 'index']);
-Route::post('/address', [CustomerController::class, 'store']);
-Route::get('/address/{id}/edit', [CustomerController::class, 'edit']);
-Route::put('/address/{id}/edit', [CustomerController::class, 'update']);
-Route::delete('/address/{id}', [CustomerController::class, 'destroy']);
+Route::get('/address', [AddressController::class, 'index']);
+Route::post('/address', [AddressController::class, 'store']);
+Route::get('/address/{id}/edit', [AddressController::class, 'edit']);
+Route::put('/address/{id}/edit', [AddressController::class, 'update']);
+Route::delete('/address/{id}', [AddressController::class, 'destroy']);
