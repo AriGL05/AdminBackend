@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Add CSRF Token for AJAX requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AdminLTE 3 | @yield('title', 'Dashboard')</title>
 
     <!-- Google Font: Source Sans Pro -->
@@ -25,6 +27,55 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.css">
     <!-- summernote -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs4.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        /* Enhanced table scrollbar styling */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #8BA6D8;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #3c8dbc;
+        }
+
+        /* Fix sticky header for scrollable tables */
+        .table-responsive .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 1;
+        }
+
+        /* Dark mode compatibility */
+        .dark-mode .table-responsive::-webkit-scrollbar-track {
+            background: #343a40;
+        }
+
+        .dark-mode .table-responsive::-webkit-scrollbar-thumb {
+            background: #6c757d;
+        }
+
+        .dark-mode .table-responsive .table thead th {
+            background-color: #343a40;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">

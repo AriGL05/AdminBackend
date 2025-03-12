@@ -315,4 +315,14 @@ class DashboardController extends Controller
     {
         return view('categories/new_category');
     }
+
+    public function newCustomer()
+    {
+        return view('customers.new_customer');
+    }
+
+    public function newAddress()
+    {
+        return view('address.new_address');
+    }
 }
