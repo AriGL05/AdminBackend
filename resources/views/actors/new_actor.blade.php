@@ -15,7 +15,10 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="row">
+                <form method="POST" action="/actors">
+                @csrf
+                @method('POST')
+                  <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="first_name">Nombre</label>
@@ -33,7 +36,9 @@
                 </div>
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
+            </div>  
+                </form>
+                
         </div>
         </div>
 </section>
