@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Film_Category;
 use Illuminate\Http\Request;
 use App\Models\Film;
 
@@ -9,27 +10,36 @@ class FilmController extends Controller
 {
     public function index()
     {
-        $films = Film::with('language')->get();
+        $films = Film::select('film_id', 'title', 'release_year', 'language_id')->with('language:language_id,name')->get();
         return response()->json($films);
     }
     public function store(Request $request)
     {
         $request->validate([
             "title" => "required|min:3|max:128",
-            "description" => "required|min:3|max:250",
+            "release_year" => "required",
             'language_id' => 'required',
-            'rental_duration' => 'required|integer',
-            'rental_rate' => 'required|numeric',
-            'replacement_cost' => 'required|numeric',
+            'length' => 'required',
+            'category_id' => 'required',
         ]);
         $film = new Film();
         $film->title = $request->get('title');
-        $film->description = $request->get('description');
+        $film->release_year = $request->get('release_year');
+        $film->description = "A movie lol";
         $film->language_id = $request->get('language_id');
-        $film->rental_duration = $request->get('rental_duration');
-        $film->rental_rate = $request->get('rental_rate');
-        $film->replacement_cost = $request->get('replacement_cost');
+        $film->rental_duration = 4;
+        $film->length = $request->get('length');
+        $film->rental_rate = 0.99;
+        $film->replacement_cost = 20.50;
         $film->save();
+
+        $filmId = $film->id;
+
+        $connect = new Film_Category();
+        $connect->film_id = $filmId;
+        $connect->category_id = $request->get('category_id');
+        $connect->save();
+
     }
     public function update(Request $request, int $id)
     {
@@ -39,19 +49,26 @@ class FilmController extends Controller
         }
         $request->validate([
             "title" => "required|min:3|max:128",
-            "description" => "required|min:3|max:250",
+            "release_year" => "required",
             'language_id' => 'required',
-            'rental_duration' => 'required|integer',
-            'rental_rate' => 'required|numeric',
-            'replacement_cost' => 'required|numeric',
+            'length' => 'required',
+            'category_id' => 'required',
         ]);
         $film->title = $request->get('title');
-        $film->description = $request->get('description');
+        $film->release_year = $request->get('release_year');
+        $film->description = "A movie lol";
         $film->language_id = $request->get('language_id');
-        $film->rental_duration = $request->get('rental_duration');
-        $film->rental_rate = $request->get('rental_rate');
-        $film->replacement_cost = $request->get('replacement_cost');
+        $film->rental_duration = 4;
+        $film->length = $request->get('length');
+        $film->rental_rate = 0.99;
+        $film->replacement_cost = 20.50;
         $film->save();
+
+        $connect = Film_Category::find($film->id);
+
+        $connect->film_id = $film->id;
+        $connect->category_id = $request->get('category_id');
+        $connect->save();
     }
     public function edit(int $id)
     {
