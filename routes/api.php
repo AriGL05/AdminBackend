@@ -33,10 +33,10 @@ Route::get('/actors/{id}/edit', [ActorController::class, 'edit']);
 Route::put('/actors/{id}/edit', [ActorController::class, 'update']);
 Route::delete('/actors/{id}', [ActorController::class, 'destroy']);
 
-//Route::get('/films', [FilmController::class, 'index']);
-//Route::post('/films', [FilmController::class, 'store']);
-//Route::get('/films/{id}/edit', [FilmController::class, 'edit']);
-//Route::put('/films/{id}/edit', [FilmController::class, 'update']);
+Route::get('/films', [FilmController::class, 'index']);
+Route::post('/films', [FilmController::class, 'store']);
+Route::get('/films/{id}/edit', [FilmController::class, 'edit']);
+Route::put('/films/{id}/edit', [FilmController::class, 'update']);
 Route::delete('/films/{id}', [FilmController::class, 'destroy']);
 
 //categories

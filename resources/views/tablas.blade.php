@@ -190,107 +190,151 @@
     const tableBody = document.getElementById('table-body');
     tableBody.innerHTML = '';
 
+    const tipo = '{{ $tipo ?? "" }}'; // Obtener el tipo de dato (categorias, peliculas, actores)
+
     data.forEach(item => {
-      const row = document.createElement('tr');
+        const row = document.createElement('tr');
 
-      Object.entries(item).forEach(([key, value]) => {
-        if (key !== 'imagen') { // Skip image URLs in regular cells
-          const cell = document.createElement('td');
-
-          // Format the value based on the key
-          if (key === 'duracion') {
-            cell.textContent = `${value} min`;
-          } else if (key === 'anio' || key === 'year') {
-            cell.textContent = value;
-          } else {
-            cell.textContent = value;
-          }
-
-          row.appendChild(cell);
+        // Determinar el ID según el tipo de dato
+        let itemId;
+        switch (tipo) {
+            case 'categorias':
+                itemId = item.category_id; // ID para categorías
+                break;
+            case 'peliculas':
+                itemId = item.film_id || item.id; // ID para películas
+                break;
+            case 'actores':
+                itemId = item.actor_id || item.id; // ID para actores
+                break;
+            default:
+                console.error('Tipo de dato no válido:', tipo);
+                return;
         }
-      });
 
-      // Add action buttons
-      const actionsCell = document.createElement('td');
-      actionsCell.className = 'text-center';
+        // Verificar que el ID esté definido
+        if (!itemId) {
+            console.error('El item no tiene un ID válido:', item);
+            return;
+        }
 
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-info mr-1';
-      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-      editBtn.onclick = function() { editItem(item.id); };
-      actionsCell.appendChild(editBtn);
+        // Generar las celdas de la fila
+        Object.entries(item).forEach(([key, value]) => {
+            if (key !== 'imagen') { // Skip image URLs in regular cells
+                const cell = document.createElement('td');
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn btn-sm btn-danger';
-      deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-      deleteBtn.onclick = function() { deleteItem(item.id); };
-      actionsCell.appendChild(deleteBtn);
+                // Formatear el valor según la clave
+                if (key === 'duracion') {
+                    cell.textContent = `${value} min`;
+                } else if (key === 'anio' || key === 'year') {
+                    cell.textContent = value;
+                } else {
+                    cell.textContent = value;
+                }
 
-      row.appendChild(actionsCell);
-      tableBody.appendChild(row);
+                row.appendChild(cell);
+            }
+        });
+
+        // Agregar botones de acciones
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'text-center';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-sm btn-info mr-1';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.onclick = function() { editItem(itemId); }; // Usar el ID correcto
+        actionsCell.appendChild(editBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-sm btn-danger';
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.onclick = function() { 
+            console.log('ID del elemento a eliminar:', itemId); // Depuración
+            deleteItem(itemId); // Usar el ID correcto
+        };
+        actionsCell.appendChild(deleteBtn);
+
+        row.appendChild(actionsCell);
+        tableBody.appendChild(row);
     });
-  }
-
-  function editItem(id) {
+}
+function editItem(id) {
     const tipo = '{{ $tipo ?? "" }}';
     let endpoint;
 
     switch (tipo) {
-      case 'peliculas':
-        window.location.href = `/films/${id}/edit`;
-        break;
-      case 'actores':
-        window.location.href = `/actors/${id}/edit`;
-        break;
-      case 'categorias':
-        window.location.href = `/categories/${id}/edit`;
-        break;
+        case 'peliculas':
+            window.location.href = `/films/${id}/edit`;
+            break;
+        case 'actores':
+            window.location.href = `/actors/${id}/edit`;
+            break;
+        case 'categorias':
+            window.location.href = `/categories/${id}/edit`;
+            break;
     }
-  }
+}
 
-  function deleteItem(id) {
+function deleteItem(id) {
+    if (!id) {
+        console.error('ID no válido:', id);
+        alert('Error: ID no válido');
+        return;
+    }
+
     if (!confirm('¿Estás seguro que deseas eliminar este elemento?')) {
-      return;
+        return;
     }
 
     const tipo = '{{ $tipo ?? "" }}';
     let endpoint;
 
     switch (tipo) {
-      case 'peliculas':
-        endpoint = `/api/films/${id}`;
-        break;
-      case 'actores':
-        endpoint = `/api/actors/${id}`;
-        break;
-      case 'categorias':
-        endpoint = `/api/categories/${id}`;
-        break;
-      default:
+        case 'peliculas':
+            endpoint = `/api/films/${id}`;
+            break;
+        case 'actores':
+            endpoint = `/api/actors/${id}`;
+            break;
+        case 'categorias':
+            endpoint = `/api/categories/${id}`;
+            break;
+        default:
+            return;
+    }
+
+    // Obtener el token CSRF
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        alert('Error: No se encontró el token CSRF');
         return;
     }
 
     fetch(endpoint, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      }
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken // Usar el token CSRF
+        }
     })
     .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to delete item');
-      }
-      return response.json();
+        if (!response.ok) {
+            throw new Error('Failed to delete item');
+        }
+        return response.json();
     })
     .then(() => {
-      // Reload the data after successful deletion
-      fetchData(tipo);
+        // Recargar los datos después de eliminar
+        fetchData(tipo);
+        alert('Elemento eliminado correctamente'); // Mensaje de éxito
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('Error al eliminar el elemento');
+        console.error('Error:', error);
+        alert('Error al eliminar el elemento'); // Mensaje de error
     });
-  }
+}
 </script>
 @endsection

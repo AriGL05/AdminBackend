@@ -22,14 +22,20 @@ class ActorController extends Controller
 
     public function store(Request $request)
     {
+        // Validar los datos de entrada
         $request->validate([
             "first_name" => "required|min:3|max:45",
             "last_name" => "required|min:3|max:45",
         ]);
+    
+        // Crear el nuevo actor
         $actor = new Actor();
-        $actor->first_name = $request->get('first_name');
-        $actor->last_name = $request->get('last_name');
+        $actor->first_name = $request->input('first_name');
+        $actor->last_name = $request->input('last_name');
         $actor->save();
+    
+        // Redirigir con un mensaje de éxito
+        return redirect()->back()->with('success', 'Actor creado exitosamente');
     }
     public function update(Request $request, int $id)
     {
@@ -58,9 +64,20 @@ class ActorController extends Controller
     {
         $actor = Actor::find($id);
         if (!$actor) {
-            return response()->json(["msg" => "Actor no encontrado"], 404);
+            return response()->json(['error' => 'Actor no encontrado'], 404);
         }
+    
+        // Eliminar registros en tablas relacionadas (si existe una relación con películas)
+        if ($actor->films()->exists()) {
+            $actor->films()->detach(); // Si hay una relación Many-to-Many con Film
+        }
+    
+        // Eliminar el actor
         $actor->delete();
+    
+        // Devolver una respuesta JSON de éxito
+        return response()->json(['success' => 'Actor eliminado exitosamente'], 200);
     }
+    
 
 }

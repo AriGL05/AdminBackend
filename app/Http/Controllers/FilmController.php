@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Film_Category;
 use App\Models\Inventory;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Film;
 use App\Models\Film_Actor;
@@ -20,62 +21,78 @@ class FilmController extends Controller
         return response()->json($films);
     }
     public function store(Request $request)
-    {
-        $request->validate([
-            "title" => "required|min:3|max:128",
-            "release_year" => "required",
-            'language_id' => 'required',
-            'length' => 'required',
-            'category_id' => 'required',
-        ]);
-        $film = new Film();
-        $film->title = $request->get('title');
-        $film->release_year = $request->get('release_year');
-        $film->description = "A movie lol";
-        $film->language_id = $request->get('language_id');
-        $film->rental_duration = 4;
-        $film->length = $request->get('length');
-        $film->rental_rate = 0.99;
-        $film->replacement_cost = 20.50;
-        $film->save();
+{
+    $request->validate([
+        "title" => "required|min:3|max:128",
+        "release_year" => "required",
+        'language_id' => 'required',
+        'length' => 'required',
+        'category_id' => 'required',
+        'description' => 'nullable|string' // Se agrega para permitir descripción opcional
+    ]);
 
-        $filmId = $film->id;
+    $film = new Film();
+    $film->title = $request->get('title');
+    $film->release_year = $request->get('release_year');
+    $film->description = $request->get('description'); // Ahora se toma del request
+    $film->language_id = $request->get('language_id');
+    $film->rental_duration = 4;
+    $film->length = $request->get('length');
+    $film->rental_rate = 0.99;
+    $film->replacement_cost = 20.50;
+    $film->save();
 
-        $connect = new Film_Category();
-        $connect->film_id = $filmId;
+    $filmId = $film->film_id; // Se usa film_id en lugar de id
+
+    $connect = new Film_Category();
+    $connect->film_id = $filmId;
+    $connect->category_id = $request->get('category_id');
+    $connect->save();
+
+    return response()->json(["msg" => "Película guardada correctamente"], 201);
+}
+
+public function update(Request $request, int $id)
+{
+    $film = Film::find($id);
+    if (!$film) {
+        return response()->json(["msg" => "Film no encontrado"], 404);
+    }
+
+    $request->validate([
+        "title" => "required|min:3|max:128",
+        "release_year" => "required",
+        'language_id' => 'required',
+        'length' => 'required',
+        'category_id' => 'required',
+        'description' => 'nullable|string'
+    ]);
+
+    $film->title = $request->get('title');
+    $film->release_year = $request->get('release_year');
+    $film->description = $request->get('description');
+    $film->language_id = $request->get('language_id');
+    $film->rental_duration = 4;
+    $film->length = $request->get('length');
+    $film->rental_rate = 0.99;
+    $film->replacement_cost = 20.50;
+    $film->save();
+
+    // Corregido: Buscar la categoría correctamente
+    $connect = Film_Category::where('film_id', $film->film_id)->first();
+    if ($connect) {
         $connect->category_id = $request->get('category_id');
         $connect->save();
-
+    } else {
+        $newConnect = new Film_Category();
+        $newConnect->film_id = $film->film_id;
+        $newConnect->category_id = $request->get('category_id');
+        $newConnect->save();
     }
-    public function update(Request $request, int $id)
-    {
-        $film = Film::find($id);
-        if (!$film) {
-            return response()->json(["msg" => "film no encontrado"], 404);
-        }
-        $request->validate([
-            "title" => "required|min:3|max:128",
-            "release_year" => "required",
-            'language_id' => 'required',
-            'length' => 'required',
-            'category_id' => 'required',
-        ]);
-        $film->title = $request->get('title');
-        $film->release_year = $request->get('release_year');
-        $film->description = "A movie lol";
-        $film->language_id = $request->get('language_id');
-        $film->rental_duration = 4;
-        $film->length = $request->get('length');
-        $film->rental_rate = 0.99;
-        $film->replacement_cost = 20.50;
-        $film->save();
 
-        $connect = Film_Category::find($film->id);
+    return response()->json(["msg" => "Película actualizada correctamente"], 200);
+}
 
-        $connect->film_id = $film->id;
-        $connect->category_id = $request->get('category_id');
-        $connect->save();
-    }
     public function edit(int $id)
     {
         $film = Film::with('language:language_id,name')->find($id);
@@ -85,17 +102,32 @@ class FilmController extends Controller
         return response()->json($film);
     }
     public function destroy(int $id)
-    {
-        Log::info($id);
-        $film = Film::find($id);
-        if (!$film) {
-            return response()->json(["msg" => "film no encontrado"], 404);
-        }
+{
+    Log::info($id); // Registra el ID para depuración
+
+    // Buscar la película
+    $film = Film::find($id);
+    if (!$film) {
+        return response()->json(["msg" => "Película no encontrada"], 404);
+    }
+
+    try {
+        // Eliminar registros relacionados
         Inventory::where('film_id', $id)->delete();
         Film_Actor::where('film_id', $id)->delete();
         Film_Text::where('film_id', $id)->delete();
         Film_Category::where('film_id', $id)->delete();
+
+        // Eliminar la película
         $film->delete();
+
+        // Devolver una respuesta JSON exitosa
+        return response()->json(["msg" => "Película eliminada correctamente"], 200);
+    } catch (\Exception $e) {
+        // Manejar errores
+        Log::error("Error al eliminar la película: " . $e->getMessage());
+        return response()->json(["msg" => "Error al eliminar la película"], 500);
     }
+}
 
 }
