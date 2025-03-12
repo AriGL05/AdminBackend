@@ -118,13 +118,9 @@ class DashboardController extends Controller
      */
     public function tablas($tipo = null)
     {
-        // This will be replaced with database queries in the future
-        $data = $this->getMockData($tipo);
-
+        // Only pass the type to the view, data will be fetched via AJAX
         return view('tablas', [
-            'tipo' => $tipo,
-            'data' => $data,
-            'columns' => $this->getColumnsForType($tipo)
+            'tipo' => $tipo
         ]);
     }
 
