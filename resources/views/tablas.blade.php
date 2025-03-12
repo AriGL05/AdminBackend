@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="wrapper">
+  <!--HOLA KASSY TRABJA EN ESTA RAMA -->
+  <!--okis-->
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
