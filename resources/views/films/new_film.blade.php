@@ -22,8 +22,9 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="POST" action="/api/actors">
+                <form method="POST" action="/api/films">
                 @csrf
+                @method('POST')
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -63,11 +64,11 @@
                     </div>
                     </div>
                 </div>
-            <div class="card-footer">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
 
-                </form>
         </div>
     <div style="height: 15px">
     </div>
