@@ -12,6 +12,9 @@
 
             </div>
             <div class="card-body">
+            <form method="POST" action="/categories">
+                @csrf
+                @method('POST')
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -19,14 +22,15 @@
                             <input type="text" class="form-control" id="title" placeholder="">
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        
-                    </div>
+                        <div class="col-md-6">
+                                
+                        </div>
                     </div>
                 </div>
-            <div class="card-footer">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
         </div>
         </div>
 </section>

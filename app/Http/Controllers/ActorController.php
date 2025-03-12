@@ -10,7 +10,14 @@ class ActorController extends Controller
     public function index()
     {
         $actors = Actor::withCount('films')->get();
-        return response()->json($actors);
+        $formattedActors = $actors->map(function ($actor) {
+            return [
+                'id' => $actor->actor_id,
+                'name' => $actor->first_name . ' ' . $actor->last_name,
+                'films_count' => $actor->films_count,
+            ];
+        });
+        return response()->json($formattedActors);
     }
 
     public function store(Request $request)
