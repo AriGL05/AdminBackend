@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Film_Category;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
 use App\Models\Film;
+use App\Models\Film_Actor;
+use App\Models\Film_Text;
 use App\Models\Language;
 
 class FilmController extends Controller
@@ -83,10 +86,15 @@ class FilmController extends Controller
     }
     public function destroy(int $id)
     {
+        Log::info($id);
         $film = Film::find($id);
         if (!$film) {
             return response()->json(["msg" => "film no encontrado"], 404);
         }
+        Inventory::where('film_id', $id)->delete();
+        Film_Actor::where('film_id', $id)->delete();
+        Film_Text::where('film_id', $id)->delete();
+        Film_Category::where('film_id', $id)->delete();
         $film->delete();
     }
 
