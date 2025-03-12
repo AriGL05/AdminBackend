@@ -22,7 +22,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="POST" action="/api/films">
+                <form method="POST" action="/films">
                 @csrf
                 @method('POST')
                 <div class="row">
