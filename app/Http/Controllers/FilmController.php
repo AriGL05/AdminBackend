@@ -76,7 +76,7 @@ class FilmController extends Controller
 
         $connect = Film_Category::find($film->film_id);
 
-        $connect->film_id = $film->id;
+        $connect->film_id = $film->film_id;
         $connect->category_id = $request->get('category_id');
         $connect->save();
     }

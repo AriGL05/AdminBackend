@@ -17,7 +17,6 @@ class CustomerController extends Controller
 
         $request->validated();
 
-        // Create the customer
         $customer = Customer::create([
             'store_id' => $request->input('store_id'),
             'first_name' => $request->input('first_name'),
