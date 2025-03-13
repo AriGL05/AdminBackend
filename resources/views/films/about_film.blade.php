@@ -85,6 +85,3 @@
     @else
     <p>Film not found.</p>
 @endif
--->
-@endsection
-

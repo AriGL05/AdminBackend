@@ -75,13 +75,15 @@ class FilmController extends Controller
         $film->replacement_cost = 20.50;
         $film->save();
 
-        $connect = Film_Category::find($film->film_id);
-
-        $connect->film_id = $film->film_id;
+        $connect = Film_Category::where('film_id', $film->film_id)->first();
+        if (!$connect) {
+            $connect = new Film_Category();
+            $connect->film_id = $film->film_id;
+        }
         $connect->category_id = $request->get('category_id');
         $connect->save();
 
-        return redirect()->back();
+        return response()->json(['success' => true, 'message' => 'Film updated successfully']);
     }
     public function edit(int $id)
     {
@@ -89,6 +91,13 @@ class FilmController extends Controller
         if (!$film) {
             return response()->json(["msg" => "film no encontrado"], 404);
         }
+
+        // Get the associated category
+        $filmCategory = Film_Category::where('film_id', $id)->first();
+        if ($filmCategory) {
+            $film->category_id = $filmCategory->category_id;
+        }
+
         return response()->json($film);
     }
     public function destroy(int $id)
