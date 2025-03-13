@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="wrapper">
+  <!--HOLA KASSY TRABJA EN ESTA RAMA -->
+  <!--okis-->
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
@@ -26,6 +28,12 @@
                       case 'categorias':
                         $addRoute = route('newcategory');
                         break;
+                      case 'customers':
+                        $addRoute = route('newcustomer');
+                        break;
+                      case 'address':
+                        $addRoute = route('newaddress');
+                        break;
                     }
                   @endphp
                   <a href="{{ $addRoute }}" class="btn btn-primary">
@@ -47,7 +55,7 @@
                   Error al cargar los datos. Por favor, intente nuevamente.
                 </div>
 
-                <div id="table-container" class="d-none">
+                <div id="table-container" class="table-responsive d-none">
                   <table id="data-table" class="table table-bordered table-hover">
                     <thead>
                       <tr id="table-headers">
@@ -108,13 +116,19 @@
     let endpoint;
     switch (tipo) {
       case 'peliculas':
-        endpoint = '/api/films';
+        endpoint = '/films';
         break;
       case 'actores':
-        endpoint = '/api/actors';
+        endpoint = '/actors';
         break;
       case 'categorias':
-        endpoint = '/api/categories';
+        endpoint = '/categories';
+        break;
+      case 'customers':
+        endpoint = '/customers';
+        break;
+      case 'address':
+        endpoint = '/address';
         break;
       default:
         endpoint = null;
@@ -194,6 +208,28 @@
     data.forEach(item => {
       const row = document.createElement('tr');
 
+      // Get the correct ID field based on table type
+      let itemId;
+      switch(tipo) {
+        case 'peliculas':
+          itemId = item.film_id || item.id;
+          break;
+        case 'actores':
+          itemId = item.actor_id || item.id;
+          break;
+        case 'categorias':
+          itemId = item.category_id || item.id;
+          break;
+        case 'customers':
+          itemId = item.customer_id || item.id;
+          break;
+        case 'address':
+          itemId = item.address_id || item.id;
+          break;
+        default:
+          itemId = item.id;
+      }
+
       Object.entries(item).forEach(([key, value]) => {
         if (key !== 'imagen') { // Skip image URLs in regular cells
           const cell = document.createElement('td');
@@ -211,71 +247,34 @@
         }
       });
 
-    const actionsCell = document.createElement('td');
-    actionsCell.className = 'text-center';
-    
-    if (tipo === 'peliculas') {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn btn-sm btn-info mr-1';
-            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-            editBtn.onclick = function() { editItem(item.film_id); };
-            actionsCell.appendChild(editBtn);
+      // Add action buttons
+      const actionsCell = document.createElement('td');
+      actionsCell.className = 'text-center';
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-sm btn-danger';
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteBtn.onclick = function() { deleteItem(item.film_id); };
-            actionsCell.appendChild(deleteBtn);
-        } else if (tipo === 'actores') {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn btn-sm btn-info mr-1';
-            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-            editBtn.onclick = function() { editItem(item.id); };
-            actionsCell.appendChild(editBtn);
+      // Create edit button
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-sm btn-info mr-1';
+      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+      editBtn.onclick = function() { editItem(itemId); };
+      actionsCell.appendChild(editBtn);
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-sm btn-danger';
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteBtn.onclick = function() { deleteItem(item.id); };
-            actionsCell.appendChild(deleteBtn);
-        } else if (tipo === 'categorias') {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn btn-sm btn-info mr-1';
-            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-            editBtn.onclick = function() { editItem(item.category_id); }; 
-            actionsCell.appendChild(editBtn);
+      // Create delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn btn-sm btn-danger';
+      deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+      deleteBtn.onclick = function() { deleteItem(itemId); };
+      actionsCell.appendChild(deleteBtn);
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-sm btn-danger';
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteBtn.onclick = function() { deleteItem(item.category_id); }; 
-            actionsCell.appendChild(deleteBtn);
-        }
-
-
-
-    row.appendChild(actionsCell);
-    tableBody.appendChild(row);
+      row.appendChild(actionsCell);
+      tableBody.appendChild(row);
     });
   }
 
   function editItem(id) {
     const tipo = '{{ $tipo ?? "" }}';
-    let endpoint;
 
-    switch (tipo) {
-      case 'peliculas':
-        const film_id = Number(id)
-        window.location.href = `/aboutfilm/${film_id}`;
-        break;
-      case 'actores':
-        const actor_id = Number(id)
-        window.location.href = `/aboutactor/${actor_id}`;
-        break;
-      case 'categorias':
-        window.location.href = `/categories/${id}/edit`;
-        break;
-    }
+    // Use our new dynamic edit route for all item types
+    window.location.href = `/edit/${tipo}/${id}`;
   }
 
   function deleteItem(id) {
@@ -288,38 +287,58 @@
 
     switch (tipo) {
       case 'peliculas':
-        endpoint = `/api/films/${id}`;
+        endpoint = `/films/${id}`;
         break;
       case 'actores':
-        endpoint = `/api/actors/${id}`;
+        endpoint = `/actors/${id}`;
         break;
       case 'categorias':
-        endpoint = `/api/categories/${id}`;
+        endpoint = `/categories/${id}`;
+        break;
+      case 'customers':
+        endpoint = `/customers/${id}`;
+        break;
+      case 'address':
+        endpoint = `/address/${id}`;
         break;
       default:
         return;
+    }
+
+    // Get CSRF token from meta tag
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    if (!token) {
+      console.error('CSRF token not found');
+      alert('Error: CSRF token not found. Please refresh the page.');
+      return;
     }
 
     fetch(endpoint, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        'X-CSRF-TOKEN': token
       }
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error('Failed to delete item');
+        throw new Error(`Failed to delete item: ${response.status} ${response.statusText}`);
       }
-      return response.json();
+      return response.json().catch(() => {
+        // Some endpoints might not return JSON
+        return { success: true };
+      });
     })
     .then(() => {
+      // Show success message
+      alert('Elemento eliminado correctamente');
       // Reload the data after successful deletion
       fetchData(tipo);
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Error al eliminar el elemento');
+      alert(`Error al eliminar el elemento: ${error.message}`);
     });
   }
 </script>
