@@ -80,6 +80,8 @@ class FilmController extends Controller
         $connect->film_id = $film->film_id;
         $connect->category_id = $request->get('category_id');
         $connect->save();
+
+        return redirect()->back();
     }
     public function edit(int $id)
     {
@@ -119,10 +121,13 @@ class FilmController extends Controller
         $film_category = Film_Category::where('film_id', $film->film_id)->first();
         $category = Category::where('category_id', $film_category->category_id)->first();
 
-        return view('films/about_film', ['film' => $film, 'language' => $language, 
-        'languages'=>$languages,
-        'categories' => $categories,
-        'category'=>$category]);
+        return view('films/about_film', [
+            'film' => $film,
+            'language' => $language,
+            'languages' => $languages,
+            'categories' => $categories,
+            'category' => $category
+        ]);
     }
 
 }
