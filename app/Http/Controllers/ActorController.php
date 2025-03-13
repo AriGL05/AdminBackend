@@ -31,7 +31,7 @@ class ActorController extends Controller
         $actor->first_name = $request->get('first_name');
         $actor->last_name = $request->get('last_name');
         $actor->save();
-        return response()->json(['success' => true, 'message' => 'Actore added successfully']);
+        return redirect()->route('tablas', ['tipo' => 'actores']);
     }
     public function update(Request $request, int $id)
     {

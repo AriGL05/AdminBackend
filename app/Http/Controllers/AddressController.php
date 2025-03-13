@@ -34,7 +34,7 @@ class AddressController extends Controller
             'postal_code' => $request->input('postal_code'),
             'phone' => "8711231234",
         ]);
-        return response()->json(['success' => true, 'message' => 'Addres added successfully']);
+        return redirect()->route('tablas', ['tipo' => 'address']);
     }
 
     /**

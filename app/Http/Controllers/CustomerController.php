@@ -34,7 +34,7 @@ class CustomerController extends Controller
             'create_date' => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Customer added successfully']);
+        return redirect()->route('tablas', ['tipo' => 'customers']);
     }
 
     public function edit(int $id)
