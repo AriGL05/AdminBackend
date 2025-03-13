@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Film_Category;
 use App\Models\Inventory;
 use Illuminate\Http\Request;
@@ -82,7 +83,7 @@ class FilmController extends Controller
         $connect->category_id = $request->get('category_id');
         $connect->save();
 
-        return response()->json(['success' => true, 'message' => 'Film updated successfully']);
+        return redirect()->back();
     }
     public function edit(int $id)
     {
@@ -122,7 +123,20 @@ class FilmController extends Controller
         if (!$film) {
             abort(404, 'Film not found');
         }
-        return view('films/about_film', ['film' => $film]);
+        $language = Language::find($film->language_id);
+        $languages = Language::all();
+
+        $categories = Category::all();
+        $film_category = Film_Category::where('film_id', $film->film_id)->first();
+        $category = Category::where('category_id', $film_category->category_id)->first();
+
+        return view('films/about_film', [
+            'film' => $film,
+            'language' => $language,
+            'languages' => $languages,
+            'categories' => $categories,
+            'category' => $category
+        ]);
     }
 
 }
