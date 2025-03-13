@@ -7,6 +7,14 @@ use App\Models\Address;
 
 class AddressController extends Controller
 {
+    public function index(Request $request)
+    {
+        $addresses = Address::select('address.address_id', 'address.address', 'address.district', 'city.city as city', 'address.postal_code')
+            ->join('city', 'address.city_id', '=', 'city.city_id')
+            ->orderBy('address.address_id') // Add this line to order by film_id descending
+            ->get();
+        return response()->json($addresses);
+    }
     public function store(Request $request)
     {
         $request->validate([
