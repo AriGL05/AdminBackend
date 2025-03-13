@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 use Exception;
 
 class AddressController extends Controller
@@ -112,13 +113,91 @@ class AddressController extends Controller
         }
     }
 
+    /**
+     * Delete the specified address.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy($id)
     {
-        $address = Address::find($id);
-        if (!$address) {
-            return response()->json(["msg" => "address no encontrado"], 404);
+        try {
+            Log::info("Attempting to delete address with ID: $id");
+
+            // Find the address
+            $address = Address::find($id);
+
+            if (!$address) {
+                Log::warning("Address with ID: $id not found for deletion");
+                return response()->json(["error" => "Dirección no encontrada"], 404);
+            }
+
+            // Check for related records (customers, staff, or stores)
+            $hasCustomers = $address->customer()->exists();
+            $hasStaff = $address->staff()->exists();
+            $hasStores = $address->store()->exists();
+
+            if ($hasCustomers || $hasStaff || $hasStores) {
+                Log::warning("Cannot delete address ID: $id - has related records", [
+                    'customers' => $hasCustomers,
+                    'staff' => $hasStaff,
+                    'stores' => $hasStores
+                ]);
+
+                return response()->json([
+                    "error" => "No es posible eliminar esta dirección porque está siendo utilizada por clientes, personal o tiendas",
+                    "details" => [
+                        "has_customers" => $hasCustomers,
+                        "has_staff" => $hasStaff,
+                        "has_stores" => $hasStores
+                    ]
+                ], 422); // Unprocessable Entity
+            }
+
+            // Delete the address
+            $address->delete();
+
+            Log::info("Successfully deleted address with ID: $id");
+            return response()->json(["success" => true, "message" => "Dirección eliminada correctamente"]);
+
+        } catch (QueryException $e) {
+            // Handle database query exceptions (like foreign key constraint violations)
+            $errorCode = $e->errorInfo[1] ?? null;
+
+            // Error code 1451 is typically a foreign key constraint violation in MySQL
+            if ($errorCode == 1451) {
+                Log::error("Foreign key constraint violation when deleting address ID: $id", [
+                    'error_code' => $errorCode,
+                    'exception' => $e->getMessage()
+                ]);
+
+                return response()->json([
+                    "error" => "No es posible eliminar esta dirección porque está referenciada por otros registros",
+                    "details" => $e->getMessage()
+                ], 422); // Unprocessable Entity
+            }
+
+            // Handle other database exceptions
+            Log::error("Database error when deleting address ID: $id", [
+                'exception' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                "error" => "Ocurrió un error en la base de datos",
+                "message" => $e->getMessage()
+            ], 500);
+
+        } catch (Exception $e) {
+            // Handle general exceptions
+            Log::error("Unexpected error when deleting address ID: $id", [
+                'exception' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                "error" => "Ocurrió un error inesperado",
+                "message" => $e->getMessage()
+            ], 500);
         }
-        $address->delete();
     }
 
     /**
