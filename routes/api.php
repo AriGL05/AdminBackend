@@ -45,3 +45,9 @@ Route::post('/categories', [CategoryController::class, 'store']);
 Route::get('/categories/{id}/edit', [CategoryController::class, 'edit']);
 Route::put('/categories/{id}/edit', [CategoryController::class, 'update']);
 Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+//costumers
+Route::get('/customers', [CustomerController::class, 'index']); //  clientes
+Route::post('/customers', [CustomerController::class, 'store']); //  nuevo cliente
+Route::get('/customers/{id}/edit', [CustomerController::class, 'edit']); // edit
+Route::put('/customers/{id}/edit', [CustomerController::class, 'update']); // Act cliente
+Route::delete('/customers/{id}', [CustomerController::class, 'destroy']); // Eliminar cliente
