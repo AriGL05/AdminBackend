@@ -90,3 +90,6 @@ Route::delete('/actors/{id}/delete', [ActorController::class, 'destroy']);
 Route::delete('/categories/{id}/delete', [CategoryController::class, 'destroy']);
 Route::delete('/customers/{id}/delete', [CustomerController::class, 'destroy']);
 Route::delete('/address/{id}/delete', [AddressController::class, 'destroy']);
+
+// Add new dynamic edit route
+Route::get('/edit/{itemType}/{itemId}', [DashboardController::class, 'editItem'])->name('edit.item');

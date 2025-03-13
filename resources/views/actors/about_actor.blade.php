@@ -30,7 +30,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="last_name">Apellidos</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ $actor->last_name }}">
+                                    <input type="text" class="form-control" id="last_name" name="last_name"
+                                        value="{{ $actor->last_name }}">
                                 </div>
                             </div>
                         </div>
