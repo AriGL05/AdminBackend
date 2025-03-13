@@ -24,6 +24,7 @@ class AddressController extends Controller
         ]);
         return redirect()->back();
     }
+
     public function update(Request $request, $id)
     {
         $address = Address::find($id);
@@ -39,6 +40,7 @@ class AddressController extends Controller
 
         return redirect()->back();
     }
+
     public function destroy($id)
     {
         $address = Address::find($id);
@@ -46,5 +48,14 @@ class AddressController extends Controller
             return response()->json(["msg" => "address no encontrado"], 404);
         }
         $address->delete();
+    }
+
+    public function edit($id)
+    {
+        $address = Address::find($id);
+        if (!$address) {
+            return response()->json(["msg" => "Address no encontrado"], 404);
+        }
+        return response()->json($address);
     }
 }

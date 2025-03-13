@@ -273,23 +273,8 @@
   function editItem(id) {
     const tipo = '{{ $tipo ?? "" }}';
 
-    switch (tipo) {
-      case 'peliculas':
-        window.location.href = `/aboutfilm/${id}`;
-        break;
-      case 'actores':
-        window.location.href = `/aboutactor/${id}`;
-        break;
-      case 'categorias':
-        window.location.href = `/categories/${id}/edit`;
-        break;
-      case 'customers':
-        window.location.href = `/customers/${id}/edit`;
-        break;
-      case 'address':
-        window.location.href = `/address/${id}/edit`;
-        break;
-    }
+    // Use our new dynamic edit route for all item types
+    window.location.href = `/edit/${tipo}/${id}`;
   }
 
   function deleteItem(id) {

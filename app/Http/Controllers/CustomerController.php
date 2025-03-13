@@ -14,10 +14,16 @@ class CustomerController extends Controller
         $customers = Customer::all();
         return response()->json($customers);
     }
+
     public function store(Request $request)
     {
-
-        $request->validated();
+        $validated = $request->validate([
+            'store_id' => 'required|integer',
+            'first_name' => 'required|string|max:45',
+            'last_name' => 'required|string|max:45',
+            'email' => 'required|email|max:50',
+            'address_id' => 'required|integer',
+        ]);
 
         $customer = Customer::create([
             'store_id' => $request->input('store_id'),
@@ -28,8 +34,18 @@ class CustomerController extends Controller
             'create_date' => now(),
         ]);
 
-        return redirect() - back();
+        return redirect()->back();
     }
+
+    public function edit(int $id)
+    {
+        $customer = Customer::find($id);
+        if (!$customer) {
+            return response()->json(["msg" => "Customer no encontrado"], 404);
+        }
+        return response()->json($customer);
+    }
+
     public function update(Request $request, int $id)
     {
         $cust = Customer::find($id);
@@ -43,6 +59,7 @@ class CustomerController extends Controller
         $cust->address_id = $request->input('address_id');
         $cust->save();
     }
+
     public function destroy(int $id)
     {
         $cust = Customer::find($id);
