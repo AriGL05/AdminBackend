@@ -19,6 +19,7 @@ class FilmController extends Controller
     {
         $films = Film::select('film.film_id', 'film.title', 'film.release_year', 'language.name as language')
             ->join('language', 'film.language_id', '=', 'language.language_id')
+            ->orderBy('film.film_id')
             ->get();
         return response()->json($films);
     }
@@ -30,11 +31,12 @@ class FilmController extends Controller
             'language_id' => 'required',
             'length' => 'required',
             'category_id' => 'required',
+            'description' => 'required',
         ]);
         $film = Film::create([
             'title' => $request->get('title'),
             'release_year' => $request->get('release_year'),
-            'description' => "A movie lol",
+            'description' => $request->get('description'),
             'language_id' => $request->get('language_id'),
             'rental_duration' => 4,
             'length' => $request->get('length'),
@@ -67,7 +69,6 @@ class FilmController extends Controller
         ]);
         $film->title = $request->get('title');
         $film->release_year = $request->get('release_year');
-        $film->description = "A movie lol";
         $film->language_id = $request->get('language_id');
         $film->rental_duration = 4;
         $film->length = $request->get('length');

@@ -12,13 +12,13 @@
 
                     <div class="card-tools">
                         <!--
-                                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                                                <i class="fas fa-minus"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                                                <i class="fas fa-times"></i>
-                                                            </button>
-                                                            -->
+                                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                                    <i class="fas fa-minus"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                                -->
                     </div>
                 </div>
                 <div class="card-body">
@@ -62,7 +62,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="sinopsis">Sinopsis</label>
-                                    <textarea class="form-control" id="description" rows="3"
+                                    <textarea class="form-control" id="description" name="description" rows="3"
                                         placeholder="Sobre esta película.."></textarea>
                                 </div>
                             </div>
