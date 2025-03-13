@@ -76,12 +76,7 @@
                     </ul>
                 </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('about') }}" class="nav-link">
-                        <i class="nav-icon fas fa-info-circle"></i>
-                        <p>About</p>
-                    </a>
-                </li>
+
 
                 <li class="nav-item">
                     <a href="{{ route('contact') }}" class="nav-link">
