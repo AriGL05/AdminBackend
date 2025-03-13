@@ -34,7 +34,7 @@ class CustomerController extends Controller
             'create_date' => now(),
         ]);
 
-        return redirect()->back();
+        return response()->json(['success' => true, 'message' => 'Customer added successfully']);
     }
 
     public function edit(int $id)
@@ -58,6 +58,7 @@ class CustomerController extends Controller
         $cust->email = $request->input('email');
         $cust->address_id = $request->input('address_id');
         $cust->save();
+        return response()->json(['success' => true, 'message' => 'Customer added successfully']);
     }
 
     public function destroy(int $id)

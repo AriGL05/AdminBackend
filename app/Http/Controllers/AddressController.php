@@ -22,7 +22,7 @@ class AddressController extends Controller
             'postal_code' => $request->input('postal_code'),
             'phone' => "8711231234",
         ]);
-        return redirect()->back();
+        return response()->json(['success' => true, 'message' => 'Addres added successfully']);
     }
 
     public function update(Request $request, $id)
@@ -38,7 +38,7 @@ class AddressController extends Controller
         $address->phone = "8711231234";
         $address->save();
 
-        return redirect()->back();
+        return response()->json(['success' => true, 'message' => 'Address updated successfully']);
     }
 
     public function destroy($id)
