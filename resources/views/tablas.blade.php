@@ -225,6 +225,7 @@
           break;
         case 'address':
           itemId = item.address_id || item.id;
+          console.log('Address ID:', itemId); // Debug the address ID
           break;
         default:
           itemId = item.id;
@@ -272,8 +273,9 @@
 
   function editItem(id) {
     const tipo = '{{ $tipo ?? "" }}';
+    console.log(`Editing ${tipo} with ID: ${id}`); // Debug logging
 
-    // Use our new dynamic edit route for all item types
+    // Use our dynamic edit route for all item types
     window.location.href = `/edit/${tipo}/${id}`;
   }
 
