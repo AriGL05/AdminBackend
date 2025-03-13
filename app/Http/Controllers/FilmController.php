@@ -116,9 +116,13 @@ class FilmController extends Controller
         $languages = Language::all();
 
         $categories = Category::all();
-        $film_category = Film_Category::find($film->film_id);
+        $film_category = Film_Category::where('film_id', $film->film_id)->first();
+        $category = Category::where('category_id', $film_category->category_id)->first();
 
-        return view('films/about_film', ['film' => $film, 'language' => $language, 'languages'=>$languages]);
+        return view('films/about_film', ['film' => $film, 'language' => $language, 
+        'languages'=>$languages,
+        'categories' => $categories,
+        'category'=>$category]);
     }
 
 }

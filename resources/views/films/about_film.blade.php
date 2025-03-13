@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <form action="/films">
+                <form action="/films/{{ $film->film_id }}/edit">
                 @csrf
                 @method('PUT')
                 <div class="row">
@@ -38,6 +38,15 @@
                             <option selected value="{{ $film->language_id }}"> {{ $language->name }} </option>
                             @foreach ($languages as $language)
                                 <option value="{{ $language->language_id }}">{{ $language->name }}</option>
+                            @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="language">Categoría/Género</label>
+                            <select id="language_id" class="form-control select2" style="width: 100%;">
+                            <option selected value="{{ $category->category_id }}"> {{ $category->name }} </option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->category_id }}">{{ $category->name }}</option>
                             @endforeach
                             </select>
                         </div>
@@ -59,7 +68,7 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary">Editar datos</button>
                 </div>
             </form>
 
