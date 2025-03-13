@@ -252,12 +252,15 @@
       const actionsCell = document.createElement('td');
       actionsCell.className = 'text-center';
 
-      // Create edit button
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-info mr-1';
-      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-      editBtn.onclick = function() { editItem(itemId); };
-      actionsCell.appendChild(editBtn);
+      // Only show edit button for tables other than categorias
+      if (tipo !== 'categorias') {
+        // Create edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-sm btn-info mr-1';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.onclick = function() { editItem(itemId); };
+        actionsCell.appendChild(editBtn);
+      }
 
       // Only show delete button for tables other than address
       if (tipo !== 'address') {
@@ -267,6 +270,12 @@
         deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
         deleteBtn.onclick = function() { deleteItem(itemId); };
         actionsCell.appendChild(deleteBtn);
+      }
+
+      // Add a view-only button for categorias table
+      if (tipo === 'categorias') {
+        // Create view button
+
       }
 
       row.appendChild(actionsCell);
