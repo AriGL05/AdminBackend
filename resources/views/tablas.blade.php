@@ -13,7 +13,7 @@
           <div class="col-12">
             <div class="card">
               <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="card-title">{{ ucfirst($tipo ?? 'Selecciona una tabla') }}</h3>
+                <h3 class="card-title">{{ $titulo ?? 'Selecciona una tabla' }}</h3>
                 @if($tipo)
                 <div>
                   @php
@@ -36,9 +36,11 @@
                         break;
                     }
                   @endphp
+                  @if($addRoute)
                   <a href="{{ $addRoute }}" class="btn btn-primary">
                     <i class="fas fa-plus mr-1"></i> Añadir nuevo
                   </a>
+                  @endif
                 </div>
                 @endif
               </div>
@@ -192,7 +194,50 @@
   }
 
   function formatHeaderName(key) {
-    // Convert snake_case or camelCase to Title Case
+    // Spanish translations for common headers
+    const translations = {
+      'film_id': 'ID Película',
+      'title': 'Título',
+      'description': 'Descripción',
+      'release_year': 'Año',
+      'language_id': 'ID Idioma',
+      'original_language_id': 'ID Idioma Original',
+      'rental_duration': 'Duración Alquiler',
+      'rental_rate': 'Tarifa Alquiler',
+      'length': 'Duración',
+      'replacement_cost': 'Costo Reemplazo',
+      'rating': 'Calificación',
+      'special_features': 'Características Especiales',
+      'last_update': 'Última Actualización',
+      'actor_id': 'ID Actor',
+      'first_name': 'Nombre',
+      'last_name': 'Apellido',
+      'category_id': 'ID Categoría',
+      'name': 'Nombre',
+      'customer_id': 'ID Cliente',
+      'store_id': 'ID Tienda',
+      'email': 'Correo Electrónico',
+      'active': 'Activo',
+      'create_date': 'Fecha Creación',
+      'address_id': 'ID Dirección',
+      'address': 'Dirección',
+      'address2': 'Dirección 2',
+      'district': 'Distrito',
+      'city_id': 'ID Ciudad',
+      'postal_code': 'Código Postal',
+      'phone': 'Teléfono',
+      'city': 'Ciudad',
+      'country_id': 'ID País',
+      'country': 'País',
+      'film_count': 'Cantidad Películas'
+    };
+
+    // If we have a translation, use it
+    if (translations[key]) {
+      return translations[key];
+    }
+
+    // Otherwise use the default formatting
     return key
       .replace(/_/g, ' ')
       .replace(/([A-Z])/g, ' $1')
