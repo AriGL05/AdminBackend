@@ -194,9 +194,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="card-footer bg-transparent text-center">
-                    <a href="{{ route('tablas', ['tipo' => 'languages']) }}" class="text-white uppercase">Ver Todos los Idiomas</a>
-                </div>
+                <!-- Card footer with link removed -->
             </div>
         </section>
         <!-- right col -->
