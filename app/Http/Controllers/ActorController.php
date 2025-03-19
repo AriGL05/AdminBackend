@@ -31,6 +31,7 @@ class ActorController extends Controller
         $actor->first_name = $request->get('first_name');
         $actor->last_name = $request->get('last_name');
         $actor->save();
+        return redirect()->route('tablas', ['tipo' => 'actores']);
     }
     public function update(Request $request, int $id)
     {
@@ -46,6 +47,7 @@ class ActorController extends Controller
         $actor->last_name = $request->get('last_name');
         $actor->last_update = now();
         $actor->save();
+        return response()->json(['success' => true, 'message' => 'Actor updated successfully']);
     }
     public function edit(int $id)
     {
