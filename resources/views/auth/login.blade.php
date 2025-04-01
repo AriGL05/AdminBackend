@@ -57,6 +57,9 @@
                     </form>
                 </div>
                 <div class="card-footer text-center py-3 bg-light">
+                <div class="small">
+                        <a href="{{ route('password.forgot') }}" class="link-primary">{{ __('Forgot Password?') }}</a>
+                    </div>
                     <div class="small">
                         <a href="{{ route('register') }}" class="link-primary">{{ __('Need an account? Sign up!') }}</a>
                     </div>
