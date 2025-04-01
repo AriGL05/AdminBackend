@@ -24,7 +24,7 @@ use App\Http\Controllers\AuthController;
 
 // Add at the top of your routes
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('dashboard');
 });
 
 // Authentication Routes
@@ -40,7 +40,7 @@ Route::post('/2fa/verify', [AuthController::class, 'verify2fa'])->name('2fa.veri
 Route::get('/2fa/resend', [AuthController::class, 'resend2fa'])->name('2fa.resend');
 
 // Modify your dashboard route to include auth middleware
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 /* hola solo corre
 php artisan serve
@@ -63,9 +63,9 @@ Route::fallback(function () {
     return redirect()->route('dashboard');
 });
 Route::get('/newfilm', [DashboardController::class, 'newFilm'])->name('newfilm');
-Route::get('/aboutfilm/{id}', [FilmController::class,'about'])->name('aboutfilm');
+Route::get('/aboutfilm/{id}', [FilmController::class, 'about'])->name('aboutfilm');
 Route::get('/newactor', [DashboardController::class, 'newActor'])->name('newactor');
-Route::get('/aboutactor/{id}', [ActorController::class,'about' ])->name('aboutactor');
+Route::get('/aboutactor/{id}', [ActorController::class, 'about'])->name('aboutactor');
 Route::get('/newcategory', [DashboardController::class, 'newCat'])->name('newcategory');
 Route::get('/newcustomer', [DashboardController::class, 'newCustomer'])->name('newcustomer');
 Route::get('/newaddress', [DashboardController::class, 'newAddress'])->name('newaddress');
@@ -141,7 +141,7 @@ Route::get('/debug/users', function () {
     $users = \App\Models\User::all();
     return response()->json([
         'user_count' => $users->count(),
-        'users' => $users->map(function($user) {
+        'users' => $users->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
