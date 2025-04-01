@@ -13,14 +13,16 @@ class TwoFCodeEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $code;
+
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($code)
     {
-        //
+        $this->code = $code;
     }
 
     /**
@@ -46,14 +48,8 @@ class TwoFCodeEmail extends Mailable
             view: 'view.name',
         );
     }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array
-     */
-    public function attachments()
+    public function build()
     {
-        return [];
+        return $this->view('emails.VerificationCodeView');
     }
 }
