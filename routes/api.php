@@ -5,6 +5,7 @@ use App\Http\Controllers\FilmController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ActorController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
