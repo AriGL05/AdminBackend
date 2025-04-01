@@ -25,6 +25,7 @@ class Staff extends Model
         'username',
         'password',
         'last_update',
+        'rol_id',
     ];
 
     public function address()
@@ -42,5 +43,9 @@ class Staff extends Model
     public function rental()
     {
         return $this->hasMany(Rental::class, 'staff_id', 'staff_id');
+    }
+    public function rol()
+    {
+        return $this->belongsTo(Roles::class, 'rol_id', 'rol_id');
     }
 }
