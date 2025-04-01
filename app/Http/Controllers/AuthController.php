@@ -14,8 +14,19 @@ use App\Mail\TwoFactorCodeMail;
 
 class AuthController extends Controller
 {
-    public function verify(Request $request)
+    public function showLoginForm()
     {
+            return view('auth.login');
+    }
+
+    public function showRegistrationForm()
+    {
+            return view('auth.register');
+    }
+
+    public function login(Request $request)
+    {
+
         // Validar los datos de entrada
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
