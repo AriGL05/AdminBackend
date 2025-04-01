@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Staff extends Model
+class Staff extends Model implements JWTSubject
 {
+    use Notifiable;
     use HasFactory;
 
     protected $table = 'staff';
@@ -47,5 +50,27 @@ class Staff extends Model
     public function rol()
     {
         return $this->belongsTo(Roles::class, 'rol_id', 'rol_id');
+    }
+
+
+    //JWT
+/**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
