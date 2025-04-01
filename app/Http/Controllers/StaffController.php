@@ -39,7 +39,7 @@ class StaffController extends Controller
             'email' => 'required|email',
             'active' => 'required',
             'username' => 'required|min:2|max:7', // Validar longitud mínima del nombre de usuario
-            'role_id' => 'required',
+            'rol_id' => 'required',
             'password' => 'required|min:8', // Validar longitud mínima de la contraseña
         ]);
 
@@ -70,7 +70,7 @@ class StaffController extends Controller
             'store_id' => 'required',
             'email' => 'required|email',
             'active' => 'required',
-            'role_id' => 'required',
+            'rol_id' => 'required',
             'username' => 'required',
         ]);
 
