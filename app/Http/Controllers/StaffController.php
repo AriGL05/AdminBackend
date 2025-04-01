@@ -14,84 +14,58 @@ class StaffController extends Controller
 {
     public function index()
     {
-        $staffs = Staff::paginate(10);
-        $stores = Store::all();
-        $address = Address::all();
-        $roles = Roles::all();
-        return view('staffs.index', compact('staffs', 'address', 'stores', 'roles'));
+        $staff = Staff::select('staff.first_name', 'staff.last_name', 'staff.email', 'staff.rol_id', 'staff.active', 'staff.username')
+            ->orderBy('staff.staff_id')->get();
+        /*
+                $staff = Staff::select('staff.first_name', 'staff.last_name', 'staff.email', 'rol.name as rol', 'staff.active', 'staff.username')
+                    ->join('rol', 'staff.rol_id', '=', 'rol.id')
+                    ->orderBy('staff.staff_id')->get();
+        */
+        return response()->json($staff);
     }
 
-    public function create()
+    public function edit(int $id)
     {
-        $stores = Store::all();
-        $addresses = Address::all();
-        $roles = Roles::all();
-        return view('staffs.create', compact('stores', 'addresses', 'roles'));
+        $staff = Staff::find($id);
+        if (!$staff) {
+            return response()->json(["msg" => "Staff no encontrado"], 404);
+        }
+        return response()->json($staff);
     }
 
-    public function store(Request $request)
+    public function update(Request $request, int $id)
     {
+        $staff = Staff::find($id);
+        if (!$staff) {
+            return response()->json(["msg" => "staff no encontrado"], 404);
+        }
         $request->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'address_id' => 'required',
-            'store_id' => 'required',
             'email' => 'required|email',
-            'active' => 'required',
-            'username' => 'required|min:2|max:7', // Validar longitud mínima del nombre de usuario
             'rol_id' => 'required',
-            'password' => 'required|min:8', // Validar longitud mínima de la contraseña
-        ]);
-
-
-        // Hashear la contraseña antes de guardar
-        $data = $request->all();
-        $data['password'] = Hash::make($request->password);
-
-        Staff::create($data);
-
-        return redirect()->route('staffs.index')->with('success', 'Staff created successfully.');
-    }
-
-    public function edit(Staff $staff)
-    {
-        $stores = Store::all();
-        $addresses = Address::all();
-        $roles = Roles::all();
-        return view('staffs.edit', compact('staff', 'stores', 'addresses', 'roles'));
-    }
-
-    public function update(Request $request, Staff $staff)
-    {
-        $request->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'address_id' => 'required',
-            'store_id' => 'required',
-            'email' => 'required|email',
             'active' => 'required',
-            'rol_id' => 'required',
             'username' => 'required',
         ]);
 
-        $data = $request->all();
+        $staff->first_name = $request->get('first_name');
+        $staff->last_name = $request->get('last_name');
+        $staff->email = $request->get('email');
+        $staff->rol_id = $request->get('rol_id');
+        $staff->active = $request->get('active');
+        $staff->username = $request->get('username');
 
-        // Verificar si se envió una nueva contraseña y hashearla
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        } else {
-            // Si no se envió una nueva contraseña, eliminarla de los datos para evitar sobreescribir
-            unset($data['password']);
-        }
+        $staff->save();
 
-        $staff->update($data);
-
-        return redirect()->route('staffs.index')->with('warning', 'Staff updated successfully');
+        return response()->json(['success' => true, 'message' => 'Staff updated successfully']);
     }
 
-    public function destroy(Staff $staff)
+    public function destroy(int $id)
     {
-        $staff->delete();
-        return redirect()->route('staffs.index')->with('success', 'Staff deleted successfully');
+        $staff = Staff::find($id);
+        if (!$staff) {
+            return response()->json(["msg" => "Staff no encontrado"], 404);
+        }
+        $staff->active = 0;
     }
 }

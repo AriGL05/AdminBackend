@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ActorController;
+use App\Http\Controllers\StaffController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -51,3 +52,10 @@ Route::post('/customers', [CustomerController::class, 'store']); //  nuevo clien
 Route::get('/customers/{id}/edit', [CustomerController::class, 'edit']); // edit
 Route::put('/customers/{id}/edit', [CustomerController::class, 'update']); // Act cliente
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy']); // Eliminar cliente
+
+//Staff
+Route::get('/staff', [StaffController::class, 'index']);
+Route::post('/staff', [StaffController::class, 'store']);
+Route::get('/staff/{id}/edit', [StaffController::class, 'edit']);
+Route::put('/staff/{id}/edit', [StaffController::class, 'update']);
+Route::delete('/staff/{id}', [StaffController::class, 'destroy']);
