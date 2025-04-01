@@ -3,223 +3,194 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Staff;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Session;
-use App\Models\User;
-use App\Mail\TwoFactorCode;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
-use Exception;
-use Tymon\JWTAuth\Exceptions\TokenInvalidException;
-use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
+use App\Mail\TwoFactorCodeMail;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    /**
-     * Create a new AuthController instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function verify(Request $request)
     {
-        // Skip JWT middleware for these methods
-        $this->middleware('auth:api', ['except' => [
-            'login', 'register', 'showLoginForm', 'showRegistrationForm',
-            'show2faForm', 'verify2fa', 'resend2fa', 'logout'
-        ]]);
-    }
-
-    /**
-     * Show the login form.
-     */
-    public function showLoginForm()
-    {
-        return view('auth.login');
-    }
-
-    /**
-     * Show the registration form.
-     */
-    public function showRegistrationForm()
-    {
-        return view('auth.register');
-    }
-
-    /**
-     * Handle user login attempt.
-     */
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+        // Validar los datos de entrada
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string',
         ]);
 
-        try {
-            // Explicitly use web guard to avoid JWT confusion
-            if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
-                // Get the authenticated user
-                $user = Auth::guard('web')->user();
-
-                // Check if we got a valid user object
-                if (!$user || !$user->id) {
-                    Auth::guard('web')->logout();
-                    return back()->withErrors([
-                        'email' => 'Authentication error. Please try again.',
-                    ])->onlyInput('email');
-                }
-
-                // Generate and store 2FA code
-                $code = rand(100000, 999999);
-
-                // Store the code and user ID in session
-                Session::put('2fa_code', $code);
-                Session::put('2fa_user_id', $user->id);
-
-                // Log the user out temporarily until they verify
-                Auth::guard('web')->logout();
-
-                // Send email with verification code
-                try {
-                    Mail::to($request->email)->send(new TwoFactorCode($code));
-                    return redirect()->route('2fa.show')->with('success', 'Please check your email for verification code');
-                } catch (Exception $e) {
-                    Log::error('Failed to send 2FA email: ' . $e->getMessage());
-                    return back()->with('error', 'Could not send verification code: ' . $e->getMessage());
-                }
-            }
-        } catch (TokenInvalidException $e) {
-            Log::error('Invalid token error: ' . $e->getMessage());
-            // Continue with login anyway as we're not using tokens for web login
-        } catch (JWTException $e) {
-            Log::error('JWT error: ' . $e->getMessage());
-            // Continue with login anyway as we're not using JWT for web login
-        } catch (Exception $e) {
-            Log::error('Login error: ' . $e->getMessage());
-            return back()->with('error', 'An error occurred during login: ' . $e->getMessage());
+        // Si la validación falla, redirigir con errores
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
-    }
+        // Buscar al usuario por su email
+        $user = Staff::where('email', $request->email)->first();
 
-    /**
-     * Show the 2FA verification form.
-     */
-    public function show2faForm()
-    {
-        if (!Session::has('2fa_user_id')) {
-            return redirect()->route('login');
+        // Verificar si el usuario existe y si la contraseña es correcta
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Credenciales incorrectas'])
+                ->withInput();
         }
 
-        return view('auth.verify-2fa');
-    }
-
-    /**
-     * Verify the 2FA code.
-     */
-    public function verify2fa(Request $request)
-    {
-        $request->validate([
-            'verification_code' => ['required', 'numeric'],
-        ]);
-
-        $sessionCode = Session::get('2fa_code');
-        $userId = Session::get('2fa_user_id');
-
-        if (!$sessionCode || !$userId) {
-            return redirect()->route('login')->with('error', 'Verification session expired. Please login again.');
+        if (!$user->active) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Usuario inactivo'])
+                ->withInput();
         }
 
-        if ($request->verification_code == $sessionCode) {
-            // Clear 2FA session data
-            Session::forget('2fa_code');
-            Session::forget('2fa_user_id');
-
-            // Log the user in (explicitly use web guard)
-            $user = User::find($userId);
-            if (!$user) {
-                return redirect()->route('login')->with('error', 'User not found. Please login again.');
-            }
-
-            Auth::guard('web')->login($user);
-
-            $request->session()->regenerate();
-            return redirect()->intended('dashboard');
-        }
-
-        return back()->with('error', 'Invalid verification code');
-    }
-
-    /**
-     * Resend 2FA verification code.
-     */
-    public function resend2fa()
-    {
-        $userId = Session::get('2fa_user_id');
-
-        if (!$userId) {
-            return redirect()->route('login')->with('error', 'Session expired. Please login again.');
-        }
-
-        $user = User::find($userId);
+        // Generar y enviar el código de 2FA
         $code = rand(100000, 999999);
+        $user->two_factor_code = bcrypt($code);
+        $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
+        $user->save();
 
-        Session::put('2fa_code', $code);
+        Mail::to($user->email)->send(new TwoFactorCode($code));
 
-        try {
-            Mail::to($user->email)->send(new TwoFactorCode($code));
-            return back()->with('success', 'Verification code has been resent');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Could not send verification code. Please try again.');
-        }
+        session(['2fa_user_id' => $user->staff_id]);
+
+        // Redirigir a la vista de 2FA
+        return redirect()->route('2fa.verify')->with('message', 'Código de verificación enviado');
     }
 
-    /**
-     * Handle user registration.
-     */
-    public function register(Request $request)
+
+    public function logout()
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        session()->forget('jwt_token');
+        Auth::logout();
+        return redirect()->route('login');
+    }
 
-        try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+    public function sendTwoFactorCode()
+    {
+        $user = Auth::user();
+        $code = rand(100000, 999999);
+        $user->two_factor_code = bcrypt($code);
+        $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
+        $user->save();
 
-            // Ensure the user was created successfully
-            if (!$user) {
-                return back()->with('error', 'Failed to create user account. Please try again.');
-            }
+        Mail::to($user->email)->send(new TwoFactorCode($code));
 
-            // After registration, automatically log in the user
+        return redirect()->route('2fa.verify')->with('message', 'Código de verificación enviado');
+    }
+
+    public function verifyTwoFactorCode(Request $request)
+    {
+        // Obtener el ID del usuario desde la sesión
+        $userId = session('2fa_user_id');
+        if (!$userId) {
+            return redirect()->route('login')->withErrors(['error' => 'No se encontró una sesión activa para la verificación.']);
+        }
+
+        // Buscar al usuario por su ID
+        $user = Staff::find($userId);
+        if (!$user) {
+            return redirect()->route('login')->withErrors(['error' => 'Usuario no encontrado.']);
+        }
+
+        // Verificar el código de 2FA
+        if (Hash::check($request->code, $user->two_factor_code) && now()->lt($user->two_factor_expires_at)) {
+            // Limpiar el código de 2FA
+            $user->two_factor_code = null;
+            $user->two_factor_expires_at = null;
+            $user->save();
+
+            // Autenticar al usuario
             Auth::login($user);
 
-            return redirect()->route('dashboard');
-        } catch (\Exception $e) {
-            Log::error('User registration failed: ' . $e->getMessage());
-            return back()->with('error', 'Registration failed: ' . $e->getMessage());
+            // Generar el token JWT
+            $token = JWTAuth::fromUser($user);
+            session(['jwt_token' => $token]);
+            session(['role_id' => $user->role_id]);
+
+            // Limpiar la sesión temporal
+            session()->forget('2fa_user_id');
+
+            return redirect()->route('home');
         }
+
+        return redirect()->back()->withErrors(['code' => 'Código incorrecto o expirado']);
     }
 
-    /**
-     * Handle user logout.
-     */
-    public function logout(Request $request)
+    public function showForgotPasswordForm()
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        return view('auth.forgot-password');
+    }
 
-        return redirect()->route('login');
+    // Enviar código de recuperación por correo
+    public function sendResetCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:staff,email',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $user = Staff::where('email', $request->email)->first();
+
+        // Generar código de verificación
+        $code = rand(100000, 999999);
+        $user->two_factor_code = bcrypt($code);
+        $user->two_factor_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        // Guardar el correo en la sesión
+        session(['reset_email' => $request->email]);
+
+        // Enviar correo con el código
+        Mail::to($user->email)->send(new TwoFactorCode($code));
+
+        return redirect()->route('password.reset')->with('message', 'Código de verificación enviado a tu correo.');
+    }
+
+    // Mostrar formulario para restablecer contraseña
+    public function showResetPasswordForm()
+    {
+        return view('auth.reset-password');
+    }
+
+    // Restablecer la contraseña
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'code' => 'required',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Obtener el correo de la sesión
+        $email = session('reset_email');
+        if (!$email) {
+            return redirect()->route('password.forgot')->withErrors(['email' => 'No se encontró un correo asociado a esta solicitud.']);
+        }
+
+        $user = Staff::where('email', $email)->first();
+
+        // Verificar el código de recuperación
+        if (!Hash::check($request->code, $user->two_factor_code) || now()->gt($user->two_factor_expires_at)) {
+            return redirect()->back()->withErrors(['code' => 'El código es incorrecto o ha expirado.']);
+        }
+
+        // Restablecer la contraseña
+        $user->password = Hash::make($request->password);
+        $user->two_factor_code = null;
+        $user->two_factor_expires_at = null;
+        $user->save();
+
+        // Limpiar la sesión
+        session()->forget('reset_email');
+
+        return redirect()->route('login')->with('message', 'Contraseña restablecida correctamente. Ahora puedes iniciar sesión.');
     }
 }
