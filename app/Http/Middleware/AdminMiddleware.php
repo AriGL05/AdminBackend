@@ -17,14 +17,8 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // Check if user is authenticated and is admin (role_id = 1)
-        if (!Auth::check() || Auth::user()->role_id != 1) {
-            if ($request->expectsJson()) {
-                return response()->json(['error' => 'Unauthorized. Administrator access required.'], 403);
-            }
-
-            return redirect()->route('dashboard')
-                ->with('error', 'You do not have permission to access this area.');
+        if (Auth::check() && Auth::user()->role === 'Admin') {
+            return $next($request);
         }
 
         return $next($request);

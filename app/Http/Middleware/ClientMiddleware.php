@@ -17,7 +17,7 @@ class ClientMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'Editor') {
+        if (Auth::check() && Auth::user()->role === 'Cliente') {
             // Check if the requested route is related to Film, Category, or Actors
             $allowedRoutes = [
                 'films.*',       // Matches any route starting with 'films.' (e.g., films.index, films.show)
