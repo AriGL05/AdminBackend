@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Hash;
 use Illuminate\Http\Request;
 use App\Models\Staff;
 use App\Models\Store;
+use App\Models\Roles;
 use App\Models\Address;
 
 
@@ -15,7 +17,7 @@ class StaffController extends Controller
         $staffs = Staff::paginate(10);
         $stores = Store::all();
         $address = Address::all();
-        $roles = Role::all();
+        $roles = Roles::all();
         return view('staffs.index', compact('staffs', 'address', 'stores', 'roles'));
     }
 
@@ -23,7 +25,7 @@ class StaffController extends Controller
     {
         $stores = Store::all();
         $addresses = Address::all();
-        $roles = Role::all();
+        $roles = Roles::all();
         return view('staffs.create', compact('stores', 'addresses', 'roles'));
     }
 
@@ -55,7 +57,7 @@ class StaffController extends Controller
     {
         $stores = Store::all();
         $addresses = Address::all();
-        $roles = Role::all();
+        $roles = Roles::all();
         return view('staffs.edit', compact('staff', 'stores', 'addresses', 'roles'));
     }
 
