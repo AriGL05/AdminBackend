@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Language;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Actor;
+use App\Models\Film;
+use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Address;
+use App\Models\Language;
 
 class DashboardController extends Controller
 {
@@ -15,15 +20,70 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Get the same data used in tables to build the dashboard
-        $peliculas = $this->getMockData('peliculas');
-        $categorias = $this->getMockData('categorias');
-        $actores = $this->getMockData('actores');
+        // Count data for stat boxes
+        $filmCount = DB::table('film')->count();
+        $categoryCount = DB::table('category')->count();
+        $actorCount = DB::table('actor')->count();
+        $customerCount = DB::table('customer')->count();
 
-        // Build dashboard data from the tables data
-        $dashboardData = $this->buildDashboardData($peliculas, $categorias, $actores);
+        // Get recently added films with their categories
+        $recentFilms = DB::table('film')
+            ->join('film_category', 'film.film_id', '=', 'film_category.film_id')
+            ->join('category', 'film_category.category_id', '=', 'category.category_id')
+            ->select('film.*', 'category.name as category_name')
+            ->orderBy('film.last_update', 'desc')
+            ->limit(5)
+            ->get();
 
-        return view('dashboard', compact('dashboardData'));
+        // Get film count by category
+        $filmsByCategory = DB::table('category')
+            ->leftJoin('film_category', 'category.category_id', '=', 'film_category.category_id')
+            ->select('category.name', DB::raw('count(film_category.film_id) as film_count'))
+            ->groupBy('category.name')
+            ->orderBy('film_count', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get top actors by number of films
+        $topActors = DB::table('actor')
+            ->join('film_actor', 'actor.actor_id', '=', 'film_actor.actor_id')
+            ->select('actor.*', DB::raw('count(film_actor.film_id) as film_count'))
+            ->groupBy('actor.actor_id', 'actor.first_name', 'actor.last_name', 'actor.last_update')
+            ->orderBy('film_count', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Get release year distribution for the chart
+        $releaseYears = DB::table('film')
+            ->select('release_year', DB::raw('count(*) as total'))
+            ->groupBy('release_year')
+            ->orderBy('release_year')
+            ->get();
+
+        $releaseYearDistribution = [];
+        foreach ($releaseYears as $year) {
+            $releaseYearDistribution[$year->release_year] = $year->total;
+        }
+
+        // Get language statistics
+        $languageStats = DB::table('language')
+            ->leftJoin('film', 'language.language_id', '=', 'film.language_id')
+            ->select('language.name', DB::raw('count(film.film_id) as film_count'))
+            ->groupBy('language.language_id', 'language.name')
+            ->orderBy('film_count', 'desc')
+            ->get();
+
+        return view('dashboard', compact(
+            'filmCount',
+            'categoryCount',
+            'actorCount',
+            'customerCount',
+            'recentFilms',
+            'filmsByCategory',
+            'topActors',
+            'releaseYearDistribution',
+            'languageStats'
+        ));
     }
 
     /**
@@ -120,9 +180,26 @@ class DashboardController extends Controller
      */
     public function tablas($tipo = null)
     {
+        // Handle the special case for languages
+        if ($tipo === 'languages') {
+            $titulo = 'Idiomas';
+        } else {
+            // Map English table types to Spanish titles
+            $titulos = [
+                'peliculas' => 'Películas',
+                'categorias' => 'Categorías',
+                'actores' => 'Actores',
+                'customers' => 'Clientes',
+                'address' => 'Direcciones'
+            ];
+
+            $titulo = $titulos[$tipo] ?? 'Selecciona una tabla';
+        }
+
         // Only pass the type to the view, data will be fetched via AJAX
         return view('tablas', [
-            'tipo' => $tipo
+            'tipo' => $tipo,
+            'titulo' => $titulo
         ]);
     }
 

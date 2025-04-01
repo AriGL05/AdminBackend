@@ -21,6 +21,7 @@ class CategoryController extends Controller
         $cat = new Category();
         $cat->name = $request->get('name');
         $cat->save();
+        return redirect()->route('tablas', ['tipo' => 'categorias']);
     }
     public function update(Request $request, int $id)
     {

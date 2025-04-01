@@ -8,6 +8,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\LanguageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +84,13 @@ Route::post('/address', [AddressController::class, 'store']);
 Route::get('/address/{id}/edit', [AddressController::class, 'edit']);
 Route::put('/address/{id}/edit', [AddressController::class, 'update']);
 Route::delete('/address/{id}', [AddressController::class, 'destroy']);
+
+// Add language routes
+Route::get('/languages', [LanguageController::class, 'index']);
+Route::post('/languages', [LanguageController::class, 'store']);
+Route::get('/languages/{id}/edit', [LanguageController::class, 'edit']);
+Route::put('/languages/{id}/edit', [LanguageController::class, 'update']);
+Route::delete('/languages/{id}', [LanguageController::class, 'destroy']);
 
 // Add these fallback routes to handle any format issues with IDs
 Route::delete('/films/{id}/delete', [FilmController::class, 'destroy']);

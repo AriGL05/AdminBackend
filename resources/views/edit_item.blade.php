@@ -32,6 +32,8 @@
                                 <p class="mt-2">Loading data...</p>
                             </div>
 
+                            <div id="error-message" class="alert alert-danger d-none"></div>
+
                             <form id="edit-form" class="d-none">
                                 @csrf
                                 @method('PUT')
@@ -96,23 +98,27 @@
                 return;
         }
 
+        console.log(`Fetching data from endpoint: ${endpoint}`); // Debug logging
+
         // Fetch the data
         fetch(endpoint)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}`);
                 }
                 return response.json();
             })
             .then(data => {
+                console.log('Data received:', data); // Debug logging
                 buildForm(itemType, data);
                 document.getElementById('loading').classList.add('d-none');
                 document.getElementById('edit-form').classList.remove('d-none');
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error fetching data:', error);
                 document.getElementById('loading').classList.add('d-none');
-                alert('Error loading data. Please try again.');
+                document.getElementById('error-message').classList.remove('d-none');
+                document.getElementById('error-message').textContent = `Error loading data: ${error.message}. Please try again.`;
             });
     }
 
@@ -226,7 +232,7 @@
                     address: { label: 'Address Line', required: true },
                     district: { label: 'District', required: true },
                     city_id: { label: 'City', type: 'select', required: true, endpoint: '/api/cities' },
-                    postal_code: { label: 'Postal Code', required: true }
+                    postal_code: { label: 'Postal Code', required: false } // Made postal code optional
                 };
 
             default:

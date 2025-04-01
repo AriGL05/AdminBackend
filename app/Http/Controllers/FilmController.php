@@ -52,7 +52,7 @@ class FilmController extends Controller
         $connect->film_id = $filmId;
         $connect->category_id = $request->get('category_id');
         $connect->save();
-        return response()->json(['success' => true, 'message' => 'Film added successfully']);
+        return redirect()->route('tablas', ['tipo' => 'peliculas']);
     }
     public function update(Request $request, int $id)
     {
