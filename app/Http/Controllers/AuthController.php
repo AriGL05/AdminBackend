@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Staff;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -27,7 +29,7 @@ class AuthController extends Controller
         // Skip JWT middleware for these methods
         $this->middleware('auth:api', ['except' => [
             'login', 'register', 'showLoginForm', 'showRegistrationForm',
-            'show2faForm', 'verify2fa', 'resend2fa', 'logout'
+            'show2faForm', 'verify2fa', 'resend2fa', 'logout', 'forgotPassword'
         ]]);
     }
 
@@ -216,6 +218,39 @@ class AuthController extends Controller
     {
         return view('auth.forgot-password');
     }
+
+    public function sendPasswordCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:staff,email',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $user = Staff::where('email', $request->email)->first();
+
+        // Generar código de verificación
+        $code = rand(100000, 999999);
+        $user->two_factor_code = bcrypt($code);
+        $user->two_factor_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        // Guardar el correo en la sesión
+        session(['reset_email' => $request->email]);
+
+        // Enviar correo con el código
+        Mail::to($user->email)->send(new TwoFactorCodeMail($code));
+
+        return redirect()->route('password.reset')->with('message', 'Código de verificación enviado a tu correo.');
+    }
+
+    public function showResetPassword()
+    {
+        return view('auth.reset-password');
+    }
+
     /**
      * Handle user logout.
      */

@@ -41,6 +41,8 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <div class="py-1 bg-light">
+                        </div>
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
@@ -57,11 +59,12 @@
                     </form>
                 </div>
                 <div class="card-footer text-center py-3 bg-light">
-                <div class="small">
-                        <a href="{{ route('password.forgot') }}" class="link-primary">{{ __('Forgot Password?') }}</a>
-                    </div>
                     <div class="small">
                         <a href="{{ route('register') }}" class="link-primary">{{ __('Need an account? Sign up!') }}</a>
+                    </div>
+
+                    <div class="small">
+                                <a href="{{ route('password.forgot') }}" class="link-primary">{{ __('Forgot password?') }}</a>
                     </div>
                 </div>
             </div>

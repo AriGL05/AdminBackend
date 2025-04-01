@@ -2,7 +2,48 @@
 
 @section('content')
 <div class="container">
-  HOLA
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="font-weight-light my-2">{{ __('Write your email') }}</h3>
+                </div>
+                <div class="card-body">
+                    <p>We will send you a code!</p>
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('password.sendPasswordCode') }}">
+                        @csrf
+
+                        <div class="form-floating mb-3">
+                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="name@example.com">
+                            <label for="email">{{ __('Email Address') }}</label>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                {{ __('Sign In') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+        </div>
+    </div>
 </div>
 @endsection
 
