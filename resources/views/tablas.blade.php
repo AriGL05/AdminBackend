@@ -34,6 +34,9 @@
                       case 'address':
                         $addRoute = route('newaddress');
                         break;
+                      case 'staff':
+                        $addRoute = route('newstaff');
+                        break;
                     }
                   @endphp
                   @if($addRoute)
@@ -132,6 +135,9 @@
       case 'address':
         endpoint = '/address';
         break;
+      case 'staff':
+        endpoint = '/staff';
+        break;
       default:
         endpoint = null;
     }
@@ -156,10 +162,10 @@
 
         if (Array.isArray(data) && data.length > 0) {
           // Generate table headers
-          generateTableHeaders(data[0]);
+          generateTableHeaders(data[0], tipo);
 
           // Generate table rows
-          generateTableRows(data);
+          generateTableRows(data, tipo);
 
           // Show the table
           document.getElementById('table-container').classList.remove('d-none');
@@ -174,13 +180,14 @@
       });
   }
 
-  function generateTableHeaders(item) {
+  function generateTableHeaders(item, tipo) {
     const headerRow = document.getElementById('table-headers');
     headerRow.innerHTML = '';
 
     // Create headers based on object keys
     Object.keys(item).forEach(key => {
-      if (key !== 'imagen') { // Skip image URLs in headers
+      // Special handling for staff table - hide password
+      if (key !== 'imagen' && (tipo !== 'staff' || key !== 'password')) {
         const th = document.createElement('th');
         th.textContent = formatHeaderName(key);
         headerRow.appendChild(th);
@@ -229,7 +236,10 @@
       'city': 'Ciudad',
       'country_id': 'ID País',
       'country': 'País',
-      'film_count': 'Cantidad Películas'
+      'film_count': 'Cantidad Películas',
+      'staff_id': 'ID Personal',
+      'username': 'Usuario',
+      'role_id': 'Rol'
     };
 
     // If we have a translation, use it
@@ -245,9 +255,8 @@
       .trim();
   }
 
-  function generateTableRows(data) {
+  function generateTableRows(data, tipo) {
     const tableBody = document.getElementById('table-body');
-    const tipo = '{{ $tipo ?? "" }}';
     tableBody.innerHTML = '';
 
     data.forEach(item => {
@@ -270,14 +279,16 @@
           break;
         case 'address':
           itemId = item.address_id || item.id;
-          console.log('Address ID:', itemId); // Debug the address ID
+          break;
+        case 'staff':
+          itemId = item.staff_id || item.id;
           break;
         default:
           itemId = item.id;
       }
 
       Object.entries(item).forEach(([key, value]) => {
-        if (key !== 'imagen') { // Skip image URLs in regular cells
+        if (key !== 'imagen' && (tipo !== 'staff' || key !== 'password')) {
           const cell = document.createElement('td');
 
           // Format the value based on the key
@@ -285,6 +296,10 @@
             cell.textContent = `${value} min`;
           } else if (key === 'anio' || key === 'year') {
             cell.textContent = value;
+          } else if (key === 'active') {
+            cell.textContent = value == 1 ? 'Activo' : 'Inactivo';
+          } else if (key === 'role_id') {
+            cell.textContent = value == 1 ? 'Administrador' : 'Editor';
           } else {
             cell.textContent = value;
           }
@@ -307,20 +322,22 @@
         actionsCell.appendChild(editBtn);
       }
 
-      // Only show delete button for tables other than address
+      // Create delete button (with special handling for staff)
       if (tipo !== 'address') {
-        // Create delete button
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-sm btn-danger';
         deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
         deleteBtn.onclick = function() { deleteItem(itemId); };
+
+        // For staff table, check if this is the current user before allowing deletion
+        if (tipo === 'staff') {
+          // Add a data attribute to identify admin users
+          if (item.role_id === 1) {
+            deleteBtn.dataset.isAdmin = 'true';
+          }
+        }
+
         actionsCell.appendChild(deleteBtn);
-      }
-
-      // Add a view-only button for categorias table
-      if (tipo === 'categorias') {
-        // Create view button
-
       }
 
       row.appendChild(actionsCell);
@@ -337,13 +354,27 @@
   }
 
   function deleteItem(id) {
-    if (!confirm('¿Estás seguro que deseas eliminar este elemento?')) {
+    const tipo = '{{ $tipo ?? "" }}';
+
+    // Special handling for staff table
+    if (tipo === 'staff') {
+      // Get the button that was clicked
+      const btn = event.target.closest('button');
+
+      // Check if this is an admin user
+      if (btn.dataset.isAdmin === 'true') {
+        // Confirm with extra warning
+        if (!confirm('¿Estás seguro que deseas eliminar este administrador? Esta acción puede tener consecuencias graves para la gestión del sistema.')) {
+          return;
+        }
+      } else if (!confirm('¿Estás seguro que deseas eliminar este miembro del personal?')) {
+        return;
+      }
+    } else if (!confirm('¿Estás seguro que deseas eliminar este elemento?')) {
       return;
     }
 
-    const tipo = '{{ $tipo ?? "" }}';
     let endpoint;
-
     switch (tipo) {
       case 'peliculas':
         endpoint = `/films/${id}`;
@@ -359,6 +390,9 @@
         break;
       case 'address':
         endpoint = `/address/${id}`;
+        break;
+      case 'staff':
+        endpoint = `/staff/${id}`;
         break;
       default:
         return;
@@ -395,14 +429,12 @@
           if (response.status === 422 && data.error) {
             let errorMessage = data.error;
 
-            // If we have details about which entities are using the address, show them
-            if (data.details && tipo === 'address') {
-              errorMessage += '\n\nEsta dirección está vinculada a:';
-              if (data.details.has_customers) errorMessage += '\n• Clientes';
-              if (data.details.has_staff) errorMessage += '\n• Personal';
-              if (data.details.has_stores) errorMessage += '\n• Tiendas';
-
-              errorMessage += '\n\nDebes actualizar o eliminar estas relaciones antes de eliminar esta dirección.';
+            // If we have details, show them
+            if (data.details) {
+              errorMessage += '\n\nDetalles:';
+              for (const [key, value] of Object.entries(data.details)) {
+                errorMessage += `\n• ${value}`;
+              }
             }
 
             throw new Error(errorMessage);
@@ -426,36 +458,24 @@
     .catch(error => {
       console.error('Error:', error);
 
-      // Create a more styled error display for constraint violations
-      const errorMsg = error.message || 'Error desconocido';
-
-      if (errorMsg.includes('vinculada a') || errorMsg.includes('utilizada por')) {
-        // Use a modal or custom alert for constraint violations
-        showConstraintErrorMessage(errorMsg);
-      } else {
-        // Show standard error message
-        document.getElementById('error-message').classList.remove('d-none');
-        document.getElementById('error-message').textContent = `Error al eliminar el elemento: ${errorMsg}`;
-      }
+      // Create a more styled error display
+      showErrorMessage(error.message || 'Error desconocido');
 
       // Ensure the table is still visible
       document.getElementById('table-container').classList.remove('d-none');
     });
   }
 
-  /**
-   * Display a more user-friendly error message for constraint violations
-   */
-  function showConstraintErrorMessage(message) {
-    // Create or update constraint error alert
-    let constraintAlert = document.getElementById('constraint-error');
+  function showErrorMessage(message) {
+    // Create or update error alert
+    let errorAlert = document.getElementById('constraint-error');
 
-    if (!constraintAlert) {
-      constraintAlert = document.createElement('div');
-      constraintAlert.id = 'constraint-error';
-      constraintAlert.className = 'alert alert-warning alert-dismissible fade show mt-3';
-      constraintAlert.innerHTML = `
-        <h5><i class="icon fas fa-exclamation-triangle"></i> No se puede eliminar el registro</h5>
+    if (!errorAlert) {
+      errorAlert = document.createElement('div');
+      errorAlert.id = 'constraint-error';
+      errorAlert.className = 'alert alert-warning alert-dismissible fade show mt-3';
+      errorAlert.innerHTML = `
+        <h5><i class="icon fas fa-exclamation-triangle"></i> Error</h5>
         <div id="constraint-error-text"></div>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
@@ -464,7 +484,7 @@
 
       // Insert after the error-message div
       const errorMessageDiv = document.getElementById('error-message');
-      errorMessageDiv.parentNode.insertBefore(constraintAlert, errorMessageDiv.nextSibling);
+      errorMessageDiv.parentNode.insertBefore(errorAlert, errorMessageDiv.nextSibling);
     }
 
     // Format the message by replacing newlines with <br> tags
@@ -472,7 +492,7 @@
     document.getElementById('constraint-error-text').innerHTML = formattedMessage;
 
     // Ensure the alert is visible
-    constraintAlert.classList.remove('d-none');
+    errorAlert.classList.remove('d-none');
 
     // Hide regular error message if it's visible
     document.getElementById('error-message').classList.add('d-none');

@@ -76,7 +76,28 @@
                     </ul>
                 </li>
 
-
+                <!-- Staff Management Menu (Only for Admins) -->
+                @auth
+                    @if(Auth::user()->role_id == 1)
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-user-shield"></i>
+                            <p>
+                                Administración
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('tablas', ['tipo' => 'staff']) }}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Personal</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @endif
+                @endauth
 
                 <li class="nav-item">
                     <a href="{{ route('contact') }}" class="nav-link">

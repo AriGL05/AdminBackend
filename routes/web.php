@@ -10,6 +10,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StaffController;
 
 /*
 |--------------------------------------------------------------------------
@@ -154,3 +155,13 @@ Route::get('/debug/users', function () {
         })
     ]);
 })->middleware('auth.basic');
+
+// Staff management routes (protected by admin middleware)
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/staff', [StaffController::class, 'index']);
+    Route::post('/staff', [StaffController::class, 'store']);
+    Route::get('/staff/{id}/edit', [StaffController::class, 'edit']);
+    Route::put('/staff/{id}/edit', [StaffController::class, 'update']);
+    Route::delete('/staff/{id}', [StaffController::class, 'destroy']);
+    Route::get('/newstaff', [DashboardController::class, 'newStaff'])->name('newstaff');
+});
