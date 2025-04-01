@@ -6,7 +6,7 @@
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-lg border-0 rounded-lg mt-5">
                 <div class="card-header bg-primary text-white text-center">
-                    <h3 class="font-weight-light my-2">{{ __('Welcome Back') }}</h3>
+                    <h3 class="font-weight-light my-2">{{ __('Email Verification') }}</h3>
                 </div>
                 <div class="card-body">
                     @if(session('error'))
@@ -23,42 +23,37 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('login') }}">
+                    <div class="text-center mb-4">
+                        <div class="verification-icon">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <p class="mb-4">
+                            {{ __('We have sent a verification code to your email. Please enter the code below to complete your login.') }}
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ route('2fa.verify') }}">
                         @csrf
 
-                        <div class="form-floating mb-3">
-                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="name@example.com">
-                            <label for="email">{{ __('Email Address') }}</label>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="mb-4 text-center">
+                            <div class="verification-code-input">
+                                <input id="verification_code" type="text" class="form-control form-control-lg @error('verification_code') is-invalid @enderror" name="verification_code" required autofocus maxlength="6" placeholder="000000">
+                            </div>
+                            @error('verification_code')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
-                        </div>
-
-                        <div class="form-floating mb-3">
-                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password" placeholder="Password">
-                            <label for="password">{{ __('Password') }}</label>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="remember">
-                                {{ __('Remember Me') }}
-                            </label>
                         </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                {{ __('Sign In') }}
+                                {{ __('Verify') }}
                             </button>
                         </div>
                     </form>
                 </div>
                 <div class="card-footer text-center py-3 bg-light">
                     <div class="small">
-                        <a href="{{ route('register') }}" class="link-primary">{{ __('Need an account? Sign up!') }}</a>
+                        <a href="{{ route('2fa.resend') }}" class="link-primary">{{ __('Didn\'t receive the code? Resend') }}</a>
                     </div>
                 </div>
             </div>
@@ -84,9 +79,23 @@
         padding: 1.5rem 0;
     }
 
-    .form-floating > .form-control {
-        height: calc(3.5rem + 2px);
-        padding: 1rem 0.75rem;
+    .verification-icon {
+        font-size: 3rem;
+        color: #0d6efd;
+        margin-bottom: 1rem;
+    }
+
+    .verification-code-input {
+        max-width: 250px;
+        margin: 0 auto;
+    }
+
+    .verification-code-input input {
+        letter-spacing: 0.5rem;
+        font-size: 2rem;
+        text-align: center;
+        font-weight: 600;
+        padding: 0.5rem;
     }
 
     .form-control:focus {

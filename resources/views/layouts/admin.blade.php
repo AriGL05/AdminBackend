@@ -75,6 +75,21 @@
         .dark-mode .table-responsive .table thead th {
             background-color: #343a40;
         }
+
+        /* Floating logout button for mobile */
+        .floating-logout {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        @media (max-width: 767px) {
+            .floating-logout {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -104,6 +119,17 @@
     <!-- /.content-wrapper -->
 
     @include('layouts.partials.footer')
+
+    <!-- Floating Logout Button (Mobile Only) -->
+    <div class="floating-logout">
+        <button onclick="event.preventDefault(); document.getElementById('floating-logout-form').submit();"
+                class="btn btn-danger btn-circle">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+        <form id="floating-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+        </form>
+    </div>
 </div>
 <!-- ./wrapper -->
 

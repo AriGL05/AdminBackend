@@ -34,6 +34,11 @@ Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// 2FA Authentication Routes
+Route::get('/2fa', [AuthController::class, 'show2faForm'])->name('2fa.show');
+Route::post('/2fa/verify', [AuthController::class, 'verify2fa'])->name('2fa.verify');
+Route::get('/2fa/resend', [AuthController::class, 'resend2fa'])->name('2fa.resend');
+
 // Modify your dashboard route to include auth middleware
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 
@@ -126,3 +131,23 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Add a debug route to check if users exist
+Route::get('/debug/users', function () {
+    if (!app()->environment('local')) {
+        abort(403);
+    }
+
+    $users = \App\Models\User::all();
+    return response()->json([
+        'user_count' => $users->count(),
+        'users' => $users->map(function($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'created_at' => $user->created_at
+            ];
+        })
+    ]);
+})->middleware('auth.basic');

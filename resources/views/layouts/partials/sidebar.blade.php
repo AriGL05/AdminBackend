@@ -84,6 +84,17 @@
                         <p>Contact</p>
                     </a>
                 </li>
+
+                <!-- Logout Button at the bottom of sidebar -->
+                <li class="nav-item mt-auto">
+                    <a href="#" class="nav-link bg-danger" onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();">
+                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                        <p>Logout</p>
+                    </a>
+                    <form id="sidebar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </li>
             </ul>
         </nav>
         <!-- /.sidebar-menu -->

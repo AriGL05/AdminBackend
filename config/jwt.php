@@ -29,64 +29,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | JWT Authentication Keys
-    |--------------------------------------------------------------------------
-    |
-    | The algorithm you are using, will determine whether your tokens are
-    | signed with a random string (defined in `JWT_SECRET`) or using the
-    | following public & private keys.
-    |
-    | Symmetric Algorithms:
-    | HS256, HS384 & HS512 will use `JWT_SECRET`.
-    |
-    | Asymmetric Algorithms:
-    | RS256, RS384 & RS512 / ES256, ES384 & ES512 will use the keys below.
-    |
-    */
-
-    'keys' => [
-
-        /*
-        |--------------------------------------------------------------------------
-        | Public Key
-        |--------------------------------------------------------------------------
-        |
-        | A path or resource to your public key.
-        |
-        | E.g. 'file://path/to/public/key'
-        |
-        */
-
-        'public' => env('JWT_PUBLIC_KEY'),
-
-        /*
-        |--------------------------------------------------------------------------
-        | Private Key
-        |--------------------------------------------------------------------------
-        |
-        | A path or resource to your private key.
-        |
-        | E.g. 'file://path/to/private/key'
-        |
-        */
-
-        'private' => env('JWT_PRIVATE_KEY'),
-
-        /*
-        |--------------------------------------------------------------------------
-        | Passphrase
-        |--------------------------------------------------------------------------
-        |
-        | The passphrase for your private key. Can be null if none set.
-        |
-        */
-
-        'passphrase' => env('JWT_PASSPHRASE'),
-
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | JWT time to live
     |--------------------------------------------------------------------------
     |
@@ -97,7 +39,6 @@ return [
     | Some people may want this behaviour for e.g. a mobile app.
     | This is not particularly recommended, so make sure you have appropriate
     | systems in place to revoke the token if necessary.
-    | Notice: If you set this to null you should remove 'exp' element from 'required_claims' list.
     |
     */
 
@@ -131,7 +72,7 @@ return [
     |
     */
 
-    'algo' => env('JWT_ALGO', Tymon\JWTAuth\Providers\JWT\Provider::ALGO_HS256),
+    'algo' => env('JWT_ALGO', 'HS256'),
 
     /*
     |--------------------------------------------------------------------------
@@ -262,7 +203,6 @@ return [
     */
 
     'providers' => [
-
         /*
         |--------------------------------------------------------------------------
         | JWT Provider
@@ -295,7 +235,5 @@ return [
         */
 
         'storage' => Tymon\JWTAuth\Providers\Storage\Illuminate::class,
-
     ],
-
 ];
