@@ -2,20 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Staff;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
 use App\Mail\TwoFactorCodeMail;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    public function verify(Request $request)
+    public function showLoginForm()
     {
+            return view('auth.login');
+    }
+
+    public function showRegistrationForm()
+    {
+            return view('auth.register');
+    }
+
+    public function login(Request $request)
+    {
+
         // Validar los datos de entrada
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',

@@ -6,9 +6,10 @@
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-lg border-0 rounded-lg mt-5">
                 <div class="card-header bg-primary text-white text-center">
-                    <h3 class="font-weight-light my-2">{{ __('Welcome Back') }}</h3>
+                    <h3 class="font-weight-light my-2">{{ __('Write your email') }}</h3>
                 </div>
                 <div class="card-body">
+                    <p>We will send you a code!</p>
                     @if(session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
@@ -23,7 +24,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('password.sendPasswordCode') }}">
                         @csrf
 
                         <div class="form-floating mb-3">
@@ -34,23 +35,6 @@
                             @enderror
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password" placeholder="Password">
-                            <label for="password">{{ __('Password') }}</label>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="py-1 bg-light">
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="remember">
-                                {{ __('Remember Me') }}
-                            </label>
-                        </div>
-
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 {{ __('Sign In') }}
@@ -58,16 +42,6 @@
                         </div>
                     </form>
                 </div>
-                <div class="card-footer text-center py-3 bg-light">
-                    <div class="small">
-                        <a href="{{ route('register') }}" class="link-primary">{{ __('Need an account? Sign up!') }}</a>
-                    </div>
-
-                    <div class="small">
-                                <a href="{{ route('password.forgot') }}" class="link-primary">{{ __('Forgot password?') }}</a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
