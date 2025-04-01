@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Staff extends Model implements JWTSubject
+class Staff extends Authenticatable implements JWTSubject
 {
     use Notifiable;
     use HasFactory;
@@ -29,6 +29,17 @@ class Staff extends Model implements JWTSubject
         'password',
         'last_update',
         'rol_id',
+        'two_factor_code',
+        'two_factor_expires_at',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
     ];
 
     public function address()
@@ -52,9 +63,8 @@ class Staff extends Model implements JWTSubject
         return $this->belongsTo(Roles::class, 'rol_id', 'rol_id');
     }
 
-
     //JWT
-/**
+    /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
      * @return mixed

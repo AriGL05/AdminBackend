@@ -3,6 +3,21 @@
 @section('title', 'Panel de Control')
 
 @section('content')
+<div class="container">
+    @auth
+    <!-- Personalized welcome for logged-in users only -->
+    <div class="alert alert-success">
+        Welcome back, {{ Auth::user()->first_name }}!
+    </div>
+    @else
+    <!-- Welcome message for guests -->
+    <div class="alert alert-info">
+        <h4>Welcome to Our Dashboard</h4>
+        <p>Please <a href="{{ route('login') }}">login</a> or <a href="{{ route('register') }}">register</a> for full access to all features.</p>
+    </div>
+    @endauth
+
+    <!-- Dashboard content visible to all users -->
     <!-- Small boxes (Stat box) -->
     <div class="row">
         <div class="col-lg-3 col-6">
@@ -200,6 +215,7 @@
         <!-- right col -->
     </div>
     <!-- /.row (main row) -->
+</div>
 @endsection
 
 @section('scripts')

@@ -6,7 +6,7 @@
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-lg border-0 rounded-lg mt-5">
                 <div class="card-header bg-primary text-white text-center">
-                    <h3 class="font-weight-light my-2">{{ __('Create Account') }}</h3>
+                    <h3 class="font-weight-light my-2">{{ __('Create Staff Account') }}</h3>
                 </div>
                 <div class="card-body">
                     @if(session('error'))
@@ -20,9 +20,25 @@
                         @csrf
 
                         <div class="form-floating mb-3">
-                            <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus placeholder="John Doe">
-                            <label for="name">{{ __('Full Name') }}</label>
-                            @error('name')
+                            <input id="first_name" type="text" class="form-control @error('first_name') is-invalid @enderror" name="first_name" value="{{ old('first_name') }}" required autocomplete="first_name" autofocus placeholder="John">
+                            <label for="first_name">{{ __('First Name') }}</label>
+                            @error('first_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input id="last_name" type="text" class="form-control @error('last_name') is-invalid @enderror" name="last_name" value="{{ old('last_name') }}" required autocomplete="last_name" placeholder="Doe">
+                            <label for="last_name">{{ __('Last Name') }}</label>
+                            @error('last_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" placeholder="johndoe">
+                            <label for="username">{{ __('Username') }}</label>
+                            @error('username')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

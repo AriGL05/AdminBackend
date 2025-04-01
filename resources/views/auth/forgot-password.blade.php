@@ -6,10 +6,9 @@
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-lg border-0 rounded-lg mt-5">
                 <div class="card-header bg-primary text-white text-center">
-                    <h3 class="font-weight-light my-2">{{ __('Write your email') }}</h3>
+                    <h3 class="font-weight-light my-2">{{ __('Reset Password') }}</h3>
                 </div>
                 <div class="card-body">
-                    <p>We will send you a code!</p>
                     @if(session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ session('error') }}
@@ -17,12 +16,14 @@
                         </div>
                     @endif
 
-                    @if(session('success'))
+                    @if(session('message'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
+                            {{ session('message') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
+
+                    <p class="text-muted text-center mb-4">Enter your email address and we'll send you a reset code to reset your password.</p>
 
                     <form method="POST" action="{{ route('password.sendPasswordCode') }}">
                         @csrf
@@ -37,11 +38,17 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                {{ __('Sign In') }}
+                                {{ __('Send Reset Code') }}
                             </button>
                         </div>
                     </form>
                 </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <div class="small">
+                        <a href="{{ route('login') }}" class="link-primary">{{ __('Back to Login') }}</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -22,7 +22,7 @@ use App\Http\Controllers\AuthController;
 |
 */
 
-// Add at the top of your routes
+// Change at the top of your routes
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
@@ -37,7 +37,6 @@ Route::post('password/forgot', [AuthController::class, 'sendPasswordCode'])->nam
 Route::get('password/reset', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 
-
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // 2FA Authentication Routes
@@ -45,7 +44,7 @@ Route::get('/2fa', [AuthController::class, 'show2faForm'])->name('2fa.show');
 Route::post('/2fa/verify', [AuthController::class, 'verify2fa'])->name('2fa.verify');
 Route::get('/2fa/resend', [AuthController::class, 'resend2fa'])->name('2fa.resend');
 
-// Modify your dashboard route to include auth middleware
+// Remove the auth middleware from the dashboard route
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 /* hola solo corre
@@ -54,7 +53,7 @@ y en tu navegador escribe
 localhost:8000/dashboard
  y listo */
 
-// You can also group routes that need authentication
+// Keep auth middleware on other protected routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/tablas/{tipo?}', [DashboardController::class, 'tablas'])->name('tablas');
     Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
@@ -76,13 +75,11 @@ Route::get('/newcategory', [DashboardController::class, 'newCat'])->name('newcat
 Route::get('/newcustomer', [DashboardController::class, 'newCustomer'])->name('newcustomer');
 Route::get('/newaddress', [DashboardController::class, 'newAddress'])->name('newaddress');
 
-
 //--Info--//
 Route::get('/actors/all', [ApiController::class, 'getActors']);
 Route::get('/categories/all', [ApiController::class, 'getCategories']);
 Route::get('/languages/all', [ApiController::class, 'getLanguages']);
 Route::get('/api/cities', [ApiController::class, 'getCities']);
-
 
 Route::get('/actors', [ActorController::class, 'index']);
 Route::post('/actors', [ActorController::class, 'store']);
