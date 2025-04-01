@@ -13,10 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('staff', function (Blueprint $table) {
-            $table->string('temp_code', 64)->after('password')->nullable();
-            $table->string('google_id')->nullable()->after('temp_code');
-            $table->unsignedBigInteger('rol_id')->after('google_id')->nullable();
-            $table->foreign('rol_id')->references('id')->on('roles');
+            $table->string('two_factor_code')->nullable();
+            $table->timestamp('two_factor_expires_at')->nullable();
+            $table->foreignId('rol_id')->after('staff_id')->nullable()->constrained('rol');
         });
     }
 
@@ -27,6 +26,12 @@ return new class extends Migration {
      */
     public function down()
     {
-        //
+        Schema::table('staff', function (Blueprint $table) {
+            $table->dropColumn(['two_factor_code', 'two_factor_expires_at']);
+        });
+        Schema::table('staff', function (Blueprint $table) {
+            $table->dropForeign(['rol_id']);
+            $table->dropColumn('rol_id');
+        });
     }
 };

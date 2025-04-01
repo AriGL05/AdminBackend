@@ -10,6 +10,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
 use App\Mail\TwoFCodeEmail;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Staff;
 
 class AuthController extends Controller
 {
@@ -145,7 +146,7 @@ class AuthController extends Controller
         session(['reset_email' => $request->email]);
 
         // Enviar correo con el código
-        Mail::to($user->email)->send(new TwoFactorCodeMail($code));
+        Mail::to($user->email)->send(new TwoFCodeEmail($code));
 
         return redirect()->route('password.reset')->with('message', 'Código de verificación enviado a tu correo.');
     }
