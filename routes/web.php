@@ -9,6 +9,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,16 +22,33 @@ use App\Http\Controllers\LanguageController;
 |
 */
 
+// Add at the top of your routes
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Authentication Routes
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Modify your dashboard route to include auth middleware
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+
 /* hola solo corre
 php artisan serve
 y en tu navegador escribe
 localhost:8000/dashboard
  y listo */
 
-Route::get('/tablas/{tipo?}', [DashboardController::class, 'tablas'])->name('tablas');
-Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
+// You can also group routes that need authentication
+Route::middleware(['auth'])->group(function () {
+    Route::get('/tablas/{tipo?}', [DashboardController::class, 'tablas'])->name('tablas');
+    Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
+    // Add other protected routes here
+});
 
 // New contact routes
 Route::get('/contact', [DashboardController::class, 'contact'])->name('contact');
@@ -101,3 +119,10 @@ Route::delete('/address/{id}/delete', [AddressController::class, 'destroy']);
 
 // Add new dynamic edit route
 Route::get('/edit/{itemType}/{itemId}', [DashboardController::class, 'editItem'])->name('edit.item');
+
+// Authentication routes
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
