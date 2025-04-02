@@ -134,6 +134,9 @@
 <!-- ./wrapper -->
 
 @include('layouts.partials.scripts')
+<!-- Dashboard scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/pages/dashboard.js"></script>
+<script src="{{ asset('js/dashboard-fix.js') }}"></script>
 @yield('scripts')
 </body>
 </html>

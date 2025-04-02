@@ -12,11 +12,23 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::table('staff', function (Blueprint $table) {
-            $table->string('two_factor_code')->nullable();
-            $table->timestamp('two_factor_expires_at')->nullable();
-            $table->foreignId('rol_id')->after('staff_id')->nullable()->constrained('rol');
-        });
+        // Only run if the staff table exists
+        if (Schema::hasTable('staff')) {
+            Schema::table('staff', function (Blueprint $table) {
+                if (!Schema::hasColumn('staff', 'two_factor_code')) {
+                    $table->string('two_factor_code')->nullable();
+                }
+
+                if (!Schema::hasColumn('staff', 'two_factor_expires_at')) {
+                    $table->timestamp('two_factor_expires_at')->nullable();
+                }
+
+                // Change rol_id to role_id for consistency
+                if (!Schema::hasColumn('staff', 'role_id') && Schema::hasTable('rol')) {
+                    $table->foreignId('role_id')->after('staff_id')->nullable()->constrained('rol');
+                }
+            });
+        }
     }
 
     /**
@@ -26,12 +38,24 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::table('staff', function (Blueprint $table) {
-            $table->dropColumn(['two_factor_code', 'two_factor_expires_at']);
-        });
-        Schema::table('staff', function (Blueprint $table) {
-            $table->dropForeign(['rol_id']);
-            $table->dropColumn('rol_id');
-        });
+        if (Schema::hasTable('staff')) {
+            // Drop columns only if they exist
+            Schema::table('staff', function (Blueprint $table) {
+                $columns = ['two_factor_code', 'two_factor_expires_at'];
+                foreach ($columns as $column) {
+                    if (Schema::hasColumn('staff', $column)) {
+                        $table->dropColumn($column);
+                    }
+                }
+            });
+
+            // Drop foreign key if it exists
+            Schema::table('staff', function (Blueprint $table) {
+                if (Schema::hasColumn('staff', 'role_id')) {
+                    $table->dropForeign(['role_id']);
+                    $table->dropColumn('role_id');
+                }
+            });
+        }
     }
 };

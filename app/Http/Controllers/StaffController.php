@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 
 class StaffController extends Controller
 {
@@ -26,20 +27,44 @@ class StaffController extends Controller
      */
     public function index()
     {
-        $staff = DB::table('staff')
-            ->join('address', 'staff.address_id', '=', 'address.address_id')
-            ->join('city', 'address.city_id', '=', 'city.city_id')
-            ->join('country', 'city.country_id', '=', 'country.country_id')
-            ->select(
-                'staff.*',
-                'address.address',
-                'address.district',
-                'city.city',
-                'country.country'
-            )
-            ->get();
+        try {
+            // First check if the staff table exists
+            if (!Schema::hasTable('staff')) {
+                return response()->json(['error' => 'Staff table does not exist'], 500);
+            }
 
-        return response()->json($staff);
+            // For debugging, first try a simple query to check basic access
+            $staffCount = DB::table('staff')->count();
+            \Log::info('Staff count: ' . $staffCount);
+
+            // Get staff without joins first for troubleshooting
+            $simpleStaff = DB::table('staff')
+                ->select('staff_id', 'first_name', 'last_name', 'email', 'active', 'rol_id')
+                ->get();
+
+            // Apply UTF-8 encoding check and sanitization
+            $sanitizedStaff = [];
+            foreach ($simpleStaff as $member) {
+                $sanitizedMember = [];
+                foreach ((array)$member as $key => $value) {
+                    if (is_string($value)) {
+                        // Check if valid UTF-8, otherwise replace with sanitized version
+                        $sanitizedMember[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                    } else {
+                        $sanitizedMember[$key] = $value;
+                    }
+                }
+                $sanitizedStaff[] = $sanitizedMember;
+            }
+
+            return response()->json($sanitizedStaff);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching staff data: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error fetching staff data',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -59,7 +84,7 @@ class StaffController extends Controller
             'active' => 'required|boolean',
             'username' => 'required|string|max:16|unique:staff',
             'password' => 'required|string|min:6',
-            'role_id' => 'required|integer|in:1,2', // This now matches our database column name
+            'rol_id' => 'required|integer|in:1,2',
         ]);
 
         if ($validator->fails()) {
@@ -75,7 +100,7 @@ class StaffController extends Controller
             'active' => $request->active,
             'username' => $request->username,
             'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
+            'rol_id' => $request->rol_id,
             'last_update' => now()
         ]);
 
@@ -142,7 +167,7 @@ class StaffController extends Controller
                 Rule::unique('staff')->ignore($id, 'staff_id')
             ],
             'password' => 'nullable|string|min:6',
-            'role_id' => 'required|integer|in:1,2',
+            'rol_id' => 'required|integer|in:1,2',
         ]);
 
         if ($validator->fails()) {
@@ -157,7 +182,7 @@ class StaffController extends Controller
             'store_id' => $request->store_id,
             'active' => $request->active,
             'username' => $request->username,
-            'role_id' => $request->role_id,
+            'rol_id' => $request->rol_id,
             'last_update' => now()
         ];
 
@@ -188,8 +213,8 @@ class StaffController extends Controller
         }
 
         // Check if this is the last admin
-        if ($staff->role_id == 1) {
-            $adminsCount = DB::table('staff')->where('role_id', 1)->count();
+        if ($staff->rol_id == 1) {
+            $adminsCount = DB::table('staff')->where('rol_id', 1)->count();
 
             if ($adminsCount <= 1) {
                 return response()->json([

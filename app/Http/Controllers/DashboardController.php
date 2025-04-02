@@ -200,10 +200,18 @@ class DashboardController extends Controller
                 $titulo = 'Direcciones';
                 break;
             case 'staff':
+                // Debug information to verify user authentication and role
+                if (Auth::check()) {
+                    \Log::info('User authenticated: ' . Auth::user()->name . ' with rol_id: ' . Auth::user()->rol_id);
+                } else {
+                    \Log::info('User not authenticated');
+                }
+
                 // Check if user is admin
-                if (!Auth::check() || Auth::user()->role_id != 1) {
+                if (!Auth::check() || Auth::user()->rol_id != 1) {
+                    \Log::warning('Access denied to staff section for user');
                     return redirect()->route('dashboard')
-                        ->with('error', 'No tienes permiso para acceder a esta área');
+                        ->with('error', 'No tienes permiso para acceder a esta área de personal.');
                 }
                 $titulo = 'Personal';
                 break;
@@ -421,7 +429,7 @@ class DashboardController extends Controller
     public function newStaff()
     {
         // Check if user is admin
-        if (!Auth::check() || Auth::user()->role_id != 1) {
+        if (!Auth::check() || Auth::user()->rol_id != 1) {
             return redirect()->route('dashboard')
                 ->with('error', 'No tienes permiso para acceder a esta área');
         }
@@ -446,7 +454,7 @@ class DashboardController extends Controller
     public function editItem($itemType, $itemId)
     {
         // Add additional check for staff type
-        if ($itemType === 'staff' && (!Auth::check() || Auth::user()->role_id != 1)) {
+        if ($itemType === 'staff' && (!Auth::check() || Auth::user()->rol_id != 1)) {
             return redirect()->route('dashboard')
                 ->with('error', 'No tienes permiso para acceder a esta área');
         }

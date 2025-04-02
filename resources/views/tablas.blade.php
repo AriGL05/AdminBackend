@@ -152,11 +152,26 @@
     fetch(endpoint)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          console.error('Error response:', response.status, response.statusText);
+
+          // Try to get response body even for errors
+          return response.text().then(text => {
+            try {
+              // Try to parse as JSON
+              const errorData = JSON.parse(text);
+              console.error('Error details:', errorData);
+              throw new Error(`Server error: ${errorData.error || errorData.message || 'Unknown error'}`);
+            } catch (e) {
+              // If not valid JSON, just return the text
+              console.error('Error response body:', text);
+              throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+            }
+          });
         }
         return response.json();
       })
       .then(data => {
+        console.log('Data received:', data); // Add debug logging
         // Hide loading indicator
         document.getElementById('loading').classList.add('d-none');
 
@@ -177,6 +192,7 @@
         console.error('Error fetching data:', error);
         document.getElementById('loading').classList.add('d-none');
         document.getElementById('error-message').classList.remove('d-none');
+        document.getElementById('error-message').textContent = 'Error al cargar los datos: ' + error.message;
       });
   }
 
@@ -239,7 +255,7 @@
       'film_count': 'Cantidad Películas',
       'staff_id': 'ID Personal',
       'username': 'Usuario',
-      'role_id': 'Rol'
+      'rol_id': 'Rol'
     };
 
     // If we have a translation, use it
@@ -298,7 +314,7 @@
             cell.textContent = value;
           } else if (key === 'active') {
             cell.textContent = value == 1 ? 'Activo' : 'Inactivo';
-          } else if (key === 'role_id') {
+          } else if (key === 'rol_id') {
             cell.textContent = value == 1 ? 'Administrador' : 'Editor';
           } else {
             cell.textContent = value;
@@ -332,7 +348,7 @@
         // For staff table, check if this is the current user before allowing deletion
         if (tipo === 'staff') {
           // Add a data attribute to identify admin users
-          if (item.role_id === 1) {
+          if (item.rol_id === 1) {
             deleteBtn.dataset.isAdmin = 'true';
           }
         }

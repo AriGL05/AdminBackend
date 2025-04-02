@@ -32,8 +32,17 @@ class AddTwoFactorToStaffTable extends Migration
      */
     public function down()
     {
-        Schema::table('staff', function (Blueprint $table) {
-            $table->dropColumn(['two_factor_code', 'two_factor_expires_at']);
-        });
+        // We need to check columns one by one and drop them individually
+        if (Schema::hasColumn('staff', 'two_factor_code')) {
+            Schema::table('staff', function (Blueprint $table) {
+                $table->dropColumn('two_factor_code');
+            });
+        }
+
+        if (Schema::hasColumn('staff', 'two_factor_expires_at')) {
+            Schema::table('staff', function (Blueprint $table) {
+                $table->dropColumn('two_factor_expires_at');
+            });
+        }
     }
 }

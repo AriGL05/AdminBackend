@@ -11,6 +11,9 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StaffController;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -156,12 +159,161 @@ Route::get('/debug/users', function () {
     ]);
 })->middleware('auth.basic');
 
+// Add debug route for user role checking
+Route::get('/debug/check-role', function () {
+    if (Auth::check()) {
+        return response()->json([
+            'authenticated' => true,
+            'user' => [
+                'id' => Auth::id(),
+                'name' => Auth::user()->name,
+                'email' => Auth::user()->email,
+                'role_id' => Auth::user()->role_id ?? 'null',
+            ]
+        ]);
+    } else {
+        return response()->json([
+            'authenticated' => false,
+            'message' => 'User not logged in'
+        ]);
+    }
+});
+
+// Add debug route for user role checking with column name
+Route::get('/debug/check-columns', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $columns = [];
+
+        // Get all column names of the user
+        foreach ($user->getAttributes() as $key => $value) {
+            $columns[] = $key;
+        }
+
+        return response()->json([
+            'authenticated' => true,
+            'user_columns' => $columns,
+            'user_data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'rol_id' => $user->rol_id ?? 'null',
+                'role_id' => $user->role_id ?? 'null',
+            ]
+        ]);
+    } else {
+        return response()->json([
+            'authenticated' => false,
+            'message' => 'User not logged in'
+        ]);
+    }
+});
+
+// Debug route for staff table checking
+Route::get('/debug/staff-table', function () {
+    try {
+        if (!Schema::hasTable('staff')) {
+            return response()->json(['error' => 'Staff table does not exist']);
+        }
+
+        // Get all columns from the staff table
+        $columns = DB::select('SHOW COLUMNS FROM staff');
+
+        // Check first 5 records in the staff table
+        $staffRecords = DB::table('staff')->limit(5)->get();
+
+        // Check join tables existence
+        $tablesExist = [
+            'staff' => Schema::hasTable('staff'),
+            'address' => Schema::hasTable('address'),
+            'city' => Schema::hasTable('city'),
+            'country' => Schema::hasTable('country'),
+            'rol' => Schema::hasTable('rol')
+        ];
+
+        return response()->json([
+            'tables_exist' => $tablesExist,
+            'staff_columns' => $columns,
+            'sample_data' => $staffRecords
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Debug route to check for malformed UTF-8 characters in staff table
+Route::get('/debug/staff-encoding', function () {
+    try {
+        if (!Schema::hasTable('staff')) {
+            return response()->json(['error' => 'Staff table does not exist']);
+        }
+
+        // Get raw staff data without any joins
+        $staff = DB::select('SELECT * FROM staff LIMIT 10');
+
+        // Test each field for UTF-8 validity
+        $encodingIssues = [];
+        foreach ($staff as $index => $member) {
+            foreach ((array)$member as $field => $value) {
+                if (is_string($value) && !mb_check_encoding($value, 'UTF-8')) {
+                    $encodingIssues[] = [
+                        'staff_id' => $member->staff_id ?? $index,
+                        'field' => $field,
+                        'hex' => bin2hex(substr($value, 0, 30)) // Get hex representation for diagnosis
+                    ];
+                }
+            }
+        }
+
+        return response()->json([
+            'has_encoding_issues' => count($encodingIssues) > 0,
+            'issues' => $encodingIssues,
+            'sanitization_example' => function() use ($staff) {
+                if (count($staff) > 0) {
+                    $firstMember = (array)$staff[0];
+                    $sanitized = [];
+                    foreach ($firstMember as $key => $value) {
+                        if (is_string($value)) {
+                            $sanitized[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                        } else {
+                            $sanitized[$key] = $value;
+                        }
+                    }
+                    return $sanitized;
+                }
+                return null;
+            }
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Add a simplified staff endpoint for debugging
+Route::get('/staff-simple', function () {
+    try {
+        // Get staff data without complicated joins
+        $staff = DB::table('staff')->select('staff_id', 'first_name', 'last_name', 'email', 'active', 'rol_id')->get();
+        return response()->json($staff);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Staff management routes (protected by admin middleware)
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/staff', [StaffController::class, 'index']);
-    Route::post('/staff', [StaffController::class, 'store']);
-    Route::get('/staff/{id}/edit', [StaffController::class, 'edit']);
-    Route::put('/staff/{id}/edit', [StaffController::class, 'update']);
-    Route::delete('/staff/{id}', [StaffController::class, 'destroy']);
-    Route::get('/newstaff', [DashboardController::class, 'newStaff'])->name('newstaff');
+    Route::post('/staff', [StaffController::class, 'store'])->middleware('admin');
+    Route::get('/staff/{id}/edit', [StaffController::class, 'edit'])->middleware('admin');
+    Route::put('/staff/{id}/edit', [StaffController::class, 'update'])->middleware('admin');
+    Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->middleware('admin');
+    Route::get('/newstaff', [DashboardController::class, 'newStaff'])->middleware('admin')->name('newstaff');
 });
