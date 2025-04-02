@@ -34,9 +34,7 @@
                       case 'address':
                         $addRoute = route('newaddress');
                         break;
-                      case 'staff':
-                        $addRoute = route('newstaff');
-                        break;
+                      // Removed staff case to prevent showing the button
                     }
                   @endphp
                   @if($addRoute)
