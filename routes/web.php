@@ -10,6 +10,12 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StaffController;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,10 +28,16 @@ use App\Http\Controllers\AuthController;
 |
 */
 
-// Add at the top of your routes
+// Change at the top of your routes
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -37,7 +49,6 @@ Route::post('password/forgot', [AuthController::class, 'sendPasswordCode'])->nam
 Route::get('password/reset', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 
-
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // 2FA Authentication Routes
@@ -45,7 +56,73 @@ Route::get('/2fa', [AuthController::class, 'show2faForm'])->name('2fa.show');
 Route::post('/2fa/verify', [AuthController::class, 'verify2fa'])->name('2fa.verify');
 Route::get('/2fa/resend', [AuthController::class, 'resend2fa'])->name('2fa.resend');
 
-// Modify your dashboard route to include auth middleware
+/*
+|--------------------------------------------------------------------------
+| API JWT Authentication Routes
+|--------------------------------------------------------------------------
+*/
+
+// API Public routes
+Route::prefix('api')->group(function () {
+    Route::post('login', [AuthController::class, 'apiLogin']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+
+    // Protected routes with JWT
+    Route::middleware(['jwt.verify'])->group(function () {
+        // User info
+        Route::get('user', function (Request $request) {
+            return response()->json($request->user());
+        });
+
+        // Logout
+        Route::post('logout', [AuthController::class, 'apiLogout']);
+
+        // API Resources
+        Route::apiResource('films', FilmController::class);
+        Route::apiResource('actors', ActorController::class);
+        Route::apiResource('categories', CategoryController::class);
+
+        // Admin-only routes
+        Route::middleware(['admin'])->group(function () {
+            Route::apiResource('staff', StaffController::class);
+        });
+    });
+
+    // Test route to verify if JWT is working
+    Route::get('jwt-test', function() {
+        try {
+            $token = JWTAuth::parseToken();
+            $user = $token->authenticate();
+
+            if ($user) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'JWT is working correctly',
+                    'user_id' => $user->id
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'JWT verification failed: ' . $e->getMessage()
+            ], 401);
+        }
+    })->middleware('jwt.verify');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Main Application Routes
+|--------------------------------------------------------------------------
+*/
+
+// Remove the auth middleware from the dashboard route
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 /* hola solo corre
@@ -54,7 +131,7 @@ y en tu navegador escribe
 localhost:8000/dashboard
  y listo */
 
-// You can also group routes that need authentication
+// Keep auth middleware on other protected routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/tablas/{tipo?}', [DashboardController::class, 'tablas'])->name('tablas');
     Route::get('/about', [DashboardController::class, 'aboutFilm'])->name('about');
@@ -76,13 +153,11 @@ Route::get('/newcategory', [DashboardController::class, 'newCat'])->name('newcat
 Route::get('/newcustomer', [DashboardController::class, 'newCustomer'])->name('newcustomer');
 Route::get('/newaddress', [DashboardController::class, 'newAddress'])->name('newaddress');
 
-
 //--Info--//
 Route::get('/actors/all', [ApiController::class, 'getActors']);
 Route::get('/categories/all', [ApiController::class, 'getCategories']);
 Route::get('/languages/all', [ApiController::class, 'getLanguages']);
 Route::get('/api/cities', [ApiController::class, 'getCities']);
-
 
 Route::get('/actors', [ActorController::class, 'index']);
 Route::post('/actors', [ActorController::class, 'store']);
@@ -157,3 +232,169 @@ Route::get('/debug/users', function () {
         })
     ]);
 })->middleware('auth.basic');
+
+// Add debug route for user role checking
+Route::get('/debug/check-role', function () {
+    if (Auth::check()) {
+        return response()->json([
+            'authenticated' => true,
+            'user' => [
+                'id' => Auth::id(),
+                'name' => Auth::user()->name,
+                'email' => Auth::user()->email,
+                'role_id' => Auth::user()->role_id ?? 'null',
+            ]
+        ]);
+    } else {
+        return response()->json([
+            'authenticated' => false,
+            'message' => 'User not logged in'
+        ]);
+    }
+});
+
+// Add debug route for user role checking with column name
+Route::get('/debug/check-columns', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $columns = [];
+
+        // Get all column names of the user
+        foreach ($user->getAttributes() as $key => $value) {
+            $columns[] = $key;
+        }
+
+        return response()->json([
+            'authenticated' => true,
+            'user_columns' => $columns,
+            'user_data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'rol_id' => $user->rol_id ?? 'null',
+                'role_id' => $user->role_id ?? 'null',
+            ]
+        ]);
+    } else {
+        return response()->json([
+            'authenticated' => false,
+            'message' => 'User not logged in'
+        ]);
+    }
+});
+
+// Debug route for staff table checking
+Route::get('/debug/staff-table', function () {
+    try {
+        if (!Schema::hasTable('staff')) {
+            return response()->json(['error' => 'Staff table does not exist']);
+        }
+
+        // Get all columns from the staff table
+        $columns = DB::select('SHOW COLUMNS FROM staff');
+
+        // Check first 5 records in the staff table
+        $staffRecords = DB::table('staff')->limit(5)->get();
+
+        // Check join tables existence
+        $tablesExist = [
+            'staff' => Schema::hasTable('staff'),
+            'address' => Schema::hasTable('address'),
+            'city' => Schema::hasTable('city'),
+            'country' => Schema::hasTable('country'),
+            'rol' => Schema::hasTable('rol')
+        ];
+
+        return response()->json([
+            'tables_exist' => $tablesExist,
+            'staff_columns' => $columns,
+            'sample_data' => $staffRecords
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Debug route to check for malformed UTF-8 characters in staff table
+Route::get('/debug/staff-encoding', function () {
+    try {
+        if (!Schema::hasTable('staff')) {
+            return response()->json(['error' => 'Staff table does not exist']);
+        }
+
+        // Get raw staff data without any joins
+        $staff = DB::select('SELECT * FROM staff LIMIT 10');
+
+        // Test each field for UTF-8 validity
+        $encodingIssues = [];
+        foreach ($staff as $index => $member) {
+            foreach ((array)$member as $field => $value) {
+                if (is_string($value) && !mb_check_encoding($value, 'UTF-8')) {
+                    $encodingIssues[] = [
+                        'staff_id' => $member->staff_id ?? $index,
+                        'field' => $field,
+                        'hex' => bin2hex(substr($value, 0, 30)) // Get hex representation for diagnosis
+                    ];
+                }
+            }
+        }
+
+        // Create sanitized example
+        $sanitizedExample = null;
+        if (count($staff) > 0) {
+            $firstMember = (array)$staff[0];
+            $sanitized = [];
+            foreach ($firstMember as $key => $value) {
+                if (is_string($value)) {
+                    $sanitized[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                } else {
+                    $sanitized[$key] = $value;
+                }
+            }
+            $sanitizedExample = $sanitized;
+        }
+
+        return response()->json([
+            'has_encoding_issues' => count($encodingIssues) > 0,
+            'issues' => $encodingIssues,
+            'sanitization_example' => $sanitizedExample
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Add a simplified staff endpoint for debugging
+Route::get('/staff-simple', function () {
+    try {
+        // Get staff data without complicated joins
+        $staff = DB::table('staff')->select('staff_id', 'first_name', 'last_name', 'email', 'active', 'rol_id')->get();
+        return response()->json($staff);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+/*
+|--------------------------------------------------------------------------
+| Resource Routes
+|--------------------------------------------------------------------------
+*/
+
+// Staff management routes (protected by admin middleware)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/staff', [StaffController::class, 'index']);
+    Route::post('/staff', [StaffController::class, 'store'])->middleware('admin');
+    Route::get('/staff/{id}/edit', [StaffController::class, 'edit'])->middleware('admin');
+    Route::put('/staff/{id}/edit', [StaffController::class, 'update'])->middleware('admin');
+    Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->middleware('admin');
+    Route::get('/newstaff', [DashboardController::class, 'newStaff'])->middleware('admin')->name('newstaff');
+});

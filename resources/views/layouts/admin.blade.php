@@ -134,6 +134,10 @@
 <!-- ./wrapper -->
 
 @include('layouts.partials.scripts')
+
+<!-- Dashboard fix script to handle jQuery plugin errors -->
+<script src="{{ asset('js/dashboard-fix.js') }}"></script>
+
 @yield('scripts')
 </body>
 </html>

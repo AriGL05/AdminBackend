@@ -17,11 +17,16 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'Admin') {
-            return $next($request);
+        // Check if user is authenticated and has rol_id = 1 (Admin)
+        if (!Auth::check() || Auth::user()->rol_id != 1) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Unauthorized. Administrator access required.'], 403);
+            }
+
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes permiso para acceder a esta área.');
         }
 
-        // Redirect or abort the request if the user is not an admin
-        return redirect()->route('dashboard');
+        return $next($request);
     }
 }

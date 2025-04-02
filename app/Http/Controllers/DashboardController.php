@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Actor;
 use App\Models\Film;
@@ -180,26 +181,45 @@ class DashboardController extends Controller
      */
     public function tablas($tipo = null)
     {
-        // Handle the special case for languages
-        if ($tipo === 'languages') {
-            $titulo = 'Idiomas';
-        } else {
-            // Map English table types to Spanish titles
-            $titulos = [
-                'peliculas' => 'Películas',
-                'categorias' => 'Categorías',
-                'actores' => 'Actores',
-                'customers' => 'Clientes',
-                'address' => 'Direcciones'
-            ];
+        $titulo = null;
 
-            $titulo = $titulos[$tipo] ?? 'Selecciona una tabla';
+        switch ($tipo) {
+            case 'peliculas':
+                $titulo = 'Películas';
+                break;
+            case 'actores':
+                $titulo = 'Actores';
+                break;
+            case 'categorias':
+                $titulo = 'Categorías';
+                break;
+            case 'customers':
+                $titulo = 'Clientes';
+                break;
+            case 'address':
+                $titulo = 'Direcciones';
+                break;
+            case 'staff':
+                // Debug information to verify user authentication and role
+                if (Auth::check()) {
+                    \Log::info('User authenticated: ' . Auth::user()->name . ' with rol_id: ' . Auth::user()->rol_id);
+                } else {
+                    \Log::info('User not authenticated');
+                }
+
+                // Check if user is admin
+                if (!Auth::check() || Auth::user()->rol_id != 1) {
+                    \Log::warning('Access denied to staff section for user');
+                    return redirect()->route('dashboard')
+                        ->with('error', 'No tienes permiso para acceder a esta área de personal.');
+                }
+                $titulo = 'Personal';
+                break;
         }
 
-        // Only pass the type to the view, data will be fetched via AJAX
         return view('tablas', [
             'tipo' => $tipo,
-            'titulo' => $titulo
+            'titulo' => $titulo,
         ]);
     }
 
@@ -404,6 +424,27 @@ class DashboardController extends Controller
     }
 
     /**
+     * Display form to create new staff member
+     */
+    public function newStaff()
+    {
+        // Check if user is admin
+        if (!Auth::check() || Auth::user()->rol_id != 1) {
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes permiso para acceder a esta área');
+        }
+
+        // Get stores for the dropdown
+        $stores = DB::table('store')
+            ->join('address', 'store.address_id', '=', 'address.address_id')
+            ->join('city', 'address.city_id', '=', 'city.city_id')
+            ->select('store.store_id', 'address.address', 'city.city')
+            ->get();
+
+        return view('staff.new_staff', compact('stores'));
+    }
+
+    /**
      * Display the edit form for any item type.
      *
      * @param string $itemType
@@ -412,9 +453,12 @@ class DashboardController extends Controller
      */
     public function editItem($itemType, $itemId)
     {
-        return view('edit_item', [
-            'itemType' => $itemType,
-            'itemId' => $itemId
-        ]);
+        // Add additional check for staff type
+        if ($itemType === 'staff' && (!Auth::check() || Auth::user()->rol_id != 1)) {
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes permiso para acceder a esta área');
+        }
+
+        return view('edit_item', compact('itemType', 'itemId'));
     }
 }
