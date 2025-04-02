@@ -30,7 +30,8 @@ class AuthController extends Controller
         $this->middleware('auth:api', ['except' => [
             'login', 'register', 'showLoginForm', 'showRegistrationForm',
             'show2faForm', 'verify2fa', 'resend2fa', 'logout',
-            'showForgotPasswordForm', 'sendResetCode', 'showResetPasswordForm', 'resetPassword'
+            'forgotPassword', 'sendPasswordCode', 'showResetPassword', 'resetPassword',
+            'apiLogin', 'apiLogout', 'refresh'
         ]]);
     }
 
@@ -231,7 +232,7 @@ class AuthController extends Controller
     /**
      * Show forgot password form
      */
-    public function showForgotPasswordForm()
+    public function forgotPassword()
     {
         return view('auth.forgot-password');
     }
@@ -239,7 +240,7 @@ class AuthController extends Controller
     /**
      * Send reset code to email
      */
-    public function sendResetCode(Request $request)
+    public function sendPasswordCode(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:staff,email',
@@ -249,28 +250,42 @@ class AuthController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $staff = Staff::where('email', $request->email)->first();
+        try {
+            $staff = Staff::where('email', $request->email)->first();
 
-        // Generate verification code
-        $code = rand(100000, 999999);
-        $staff->two_factor_code = bcrypt($code);
-        $staff->two_factor_expires_at = now()->addMinutes(10);
-        $staff->save();
+            // Generate verification code
+            $code = rand(100000, 999999);
+            $staff->two_factor_code = Hash::make($code);
+            $staff->two_factor_expires_at = now()->addMinutes(10);
+            $staff->save();
 
-        // Store email in session for password reset
-        Session::put('reset_email', $request->email);
+            // Store email in session for password reset
+            Session::put('reset_email', $request->email);
 
-        // Send email with the code
-        Mail::to($staff->email)->send(new TwoFactorCode($code));
+            // Send email with the code
+            Mail::to($staff->email)->send(new TwoFactorCode($code));
 
-        return redirect()->route('password.reset')->with('message', 'Reset code sent to your email.');
+            return redirect()->route('password.reset')
+                ->with('success', 'Reset code sent to your email.');
+        } catch (\Exception $e) {
+            Log::error('Failed to send password reset code: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to send reset code. Please try again later.')
+                ->withInput();
+        }
     }
 
     /**
      * Show reset password form
      */
-    public function showResetPasswordForm()
+    public function showResetPassword()
     {
+        // Check if reset email exists in session
+        if (!Session::has('reset_email')) {
+            return redirect()->route('password.forgot')
+                ->with('error', 'Please request a password reset code first.');
+        }
+
         return view('auth.reset-password');
     }
 
@@ -290,24 +305,108 @@ class AuthController extends Controller
 
         $email = Session::get('reset_email');
         if (!$email) {
-            return redirect()->route('password.forgot')->withErrors(['email' => 'No email found for password reset.']);
+            return redirect()->route('password.forgot')
+                ->with('error', 'No email found for password reset. Please try again.');
         }
 
-        $staff = Staff::where('email', $email)->first();
+        try {
+            $staff = Staff::where('email', $email)->first();
 
-        if (!$staff || !Hash::check($request->code, $staff->two_factor_code) ||
-            now()->gt($staff->two_factor_expires_at)) {
-            return back()->withErrors(['code' => 'Invalid or expired code.']);
+            if (!$staff) {
+                return redirect()->route('password.forgot')
+                    ->with('error', 'User not found. Please try again.');
+            }
+
+            // Check if the code is valid
+            if (!Hash::check($request->code, $staff->two_factor_code) ||
+                now()->gt($staff->two_factor_expires_at)) {
+                return back()->withErrors(['code' => 'Invalid or expired code.']);
+            }
+
+            // Update password
+            $staff->password = Hash::make($request->password);
+            $staff->two_factor_code = null;
+            $staff->two_factor_expires_at = null;
+            $staff->save();
+
+            Session::forget('reset_email');
+
+            return redirect()->route('login')
+                ->with('success', 'Password reset successfully. Please login with your new password.');
+        } catch (\Exception $e) {
+            Log::error('Password reset failed: ' . $e->getMessage());
+            return back()->with('error', 'Password reset failed. Please try again.');
+        }
+    }
+
+    /**
+     * API login, returns JWT token
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function apiLogin(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        try {
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'Invalid credentials'], 401);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not create token'], 500);
         }
 
-        // Update password
-        $staff->password = Hash::make($request->password);
-        $staff->two_factor_code = null;
-        $staff->two_factor_expires_at = null;
-        $staff->save();
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60
+        ]);
+    }
 
-        Session::forget('reset_email');
+    /**
+     * API logout (Invalidate the token)
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function apiLogout()
+    {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
 
-        return redirect()->route('login')->with('success', 'Password reset successfully. Please login with your new password.');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Successfully logged out'
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to logout, please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Refresh a token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function refresh()
+    {
+        try {
+            $token = JWTAuth::refresh();
+
+            return response()->json([
+                'status' => 'success',
+                'token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Could not refresh token'
+            ], 401);
+        }
     }
 }

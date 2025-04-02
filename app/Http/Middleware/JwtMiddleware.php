@@ -3,13 +3,14 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Exception;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
-use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
-class JwtMiddleware
+class JwtMiddleware extends BaseMiddleware
 {
     /**
      * Handle an incoming request.
@@ -20,25 +21,36 @@ class JwtMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // Skip JWT auth for web routes
-        if ($request->route()->named([
-            'login', 'register', '2fa.show', '2fa.verify', '2fa.resend', 'logout'
-        ]) || $request->is('login', 'register', '2fa*')) {
-            return $next($request);
-        }
-
         try {
+            // Check if token exists and is valid
             $user = JWTAuth::parseToken()->authenticate();
-        } catch (TokenInvalidException $e) {
-            return response()->json(['status' => 'Token is Invalid'], 401);
-        } catch (TokenExpiredException $e) {
-            return response()->json(['status' => 'Token is Expired'], 401);
-        } catch (JWTException $e) {
-            // If request is to a web route, continue without token validation
-            if ($request->expectsHtml()) {
-                return $next($request);
+
+            // Log successful token authentication
+            \Log::info('JWT auth successful for user: ' . ($user ? $user->id : 'unknown'));
+
+        } catch (Exception $e) {
+            // Log the exception for debugging
+            \Log::warning('JWT auth failed: ' . $e->getMessage());
+
+            if ($e instanceof TokenInvalidException) {
+                return response()->json(['status' => 'error', 'message' => 'Token is invalid'], 401);
+            } else if ($e instanceof TokenExpiredException) {
+                // If token is expired, try to refresh it
+                try {
+                    $refreshed = JWTAuth::refresh(JWTAuth::getToken());
+                    $user = JWTAuth::setToken($refreshed)->toUser();
+
+                    // Pass the refreshed token to the frontend
+                    return response()->json([
+                        'status' => 'token_refreshed',
+                        'token' => $refreshed
+                    ], 200);
+                } catch (Exception $e) {
+                    return response()->json(['status' => 'error', 'message' => 'Token has expired and cannot be refreshed'], 401);
+                }
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'Authorization token not found'], 401);
             }
-            return response()->json(['status' => 'Authorization Token not found'], 401);
         }
 
         return $next($request);

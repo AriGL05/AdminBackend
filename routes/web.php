@@ -14,6 +14,8 @@ use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +33,12 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -47,6 +55,72 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/2fa', [AuthController::class, 'show2faForm'])->name('2fa.show');
 Route::post('/2fa/verify', [AuthController::class, 'verify2fa'])->name('2fa.verify');
 Route::get('/2fa/resend', [AuthController::class, 'resend2fa'])->name('2fa.resend');
+
+/*
+|--------------------------------------------------------------------------
+| API JWT Authentication Routes
+|--------------------------------------------------------------------------
+*/
+
+// API Public routes
+Route::prefix('api')->group(function () {
+    Route::post('login', [AuthController::class, 'apiLogin']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+
+    // Protected routes with JWT
+    Route::middleware(['jwt.verify'])->group(function () {
+        // User info
+        Route::get('user', function (Request $request) {
+            return response()->json($request->user());
+        });
+
+        // Logout
+        Route::post('logout', [AuthController::class, 'apiLogout']);
+
+        // API Resources
+        Route::apiResource('films', FilmController::class);
+        Route::apiResource('actors', ActorController::class);
+        Route::apiResource('categories', CategoryController::class);
+
+        // Admin-only routes
+        Route::middleware(['admin'])->group(function () {
+            Route::apiResource('staff', StaffController::class);
+        });
+    });
+
+    // Test route to verify if JWT is working
+    Route::get('jwt-test', function() {
+        try {
+            $token = JWTAuth::parseToken();
+            $user = $token->authenticate();
+
+            if ($user) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'JWT is working correctly',
+                    'user_id' => $user->id
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'JWT verification failed: ' . $e->getMessage()
+            ], 401);
+        }
+    })->middleware('jwt.verify');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Main Application Routes
+|--------------------------------------------------------------------------
+*/
 
 // Remove the auth middleware from the dashboard route
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -308,6 +382,12 @@ Route::get('/staff-simple', function () {
         ], 500);
     }
 });
+
+/*
+|--------------------------------------------------------------------------
+| Resource Routes
+|--------------------------------------------------------------------------
+*/
 
 // Staff management routes (protected by admin middleware)
 Route::middleware(['auth'])->group(function () {
