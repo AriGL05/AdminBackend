@@ -28,6 +28,12 @@
     <!-- summernote -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs4.min.css">
 
+    <!-- jQuery - Load first to allow our fix to work -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Dashboard fix script MUST be loaded before other scripts -->
+    <script src="{{ asset('js/dashboard-fix.js') }}"></script>
+
     <!-- Custom CSS -->
     <style>
         /* Enhanced table scrollbar styling */
@@ -133,10 +139,22 @@
 </div>
 <!-- ./wrapper -->
 
-@include('layouts.partials.scripts')
-
-<!-- Dashboard fix script to handle jQuery plugin errors -->
-<script src="{{ asset('js/dashboard-fix.js') }}"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ChartJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+<!-- jQuery UI -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<!-- AdminLTE App -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/demo.js"></script>
+<!-- Moment JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<!-- Daterangepicker -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.5/daterangepicker.min.js"></script>
+<!-- Summernote -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs4.min.js"></script>
 
 @yield('scripts')
 </body>

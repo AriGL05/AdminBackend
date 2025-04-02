@@ -7,6 +7,9 @@ use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class AddressController extends Controller
@@ -40,72 +43,55 @@ class AddressController extends Controller
     /**
      * Update the specified address.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
     {
         try {
-            // Log the raw request data for debugging
-            Log::info("Received update request for address ID: $id", [
-                'raw_data' => $request->all()
-            ]);
-
-            // Validate the request data
-            $validatedData = $request->validate([
-                'address' => 'required|string|max:50',
-                'district' => 'required|string|max:20',
-                'city_id' => 'required|integer|exists:city,city_id',
-                'postal_code' => 'nullable|string|max:10',
-            ]);
-
-            // Sanitize the input data to prevent UTF-8 encoding issues
-            $sanitizedData = [
-                'address' => $this->forceAscii($validatedData['address']),
-                'district' => $this->forceAscii($validatedData['district']),
-                'city_id' => intval($validatedData['city_id']),
-                'postal_code' => isset($validatedData['postal_code']) ? $this->forceAscii($validatedData['postal_code']) : null,
-            ];
-
-            Log::info("Sanitized data for address update", ['data' => $sanitizedData]);
-
-            // Find the address
-            $address = Address::find($id);
-
-            // Check if the address exists
+            // Find address or return 404
+            $address = DB::table('address')->where('address_id', $id)->first();
             if (!$address) {
-                Log::error("Address with ID: $id not found for update");
                 return response()->json(['error' => 'Address not found'], 404);
             }
 
-            // Update the address with sanitized data
-            $address->update($sanitizedData);
-
-            // Create a clean response with only the necessary data
-            $responseData = [
-                'message' => 'Address updated successfully',
-                'address' => [
-                    'address_id' => $address->address_id,
-                    'address' => $this->forceAscii($address->address),
-                    'district' => $this->forceAscii($address->district),
-                    'city_id' => intval($address->city_id),
-                    'postal_code' => $this->forceAscii($address->postal_code),
-                ]
-            ];
-
-            // Return success response
-            return response()->json($responseData, 200, [
-                'Content-Type' => 'application/json; charset=utf-8',
-            ]);
-        } catch (Exception $e) {
-            // Log the error
-            Log::error("Failed to update address: " . $e->getMessage(), [
-                'address_id' => $id,
-                'exception' => $e
+            // Validate request data with correct field lengths
+            $validator = Validator::make($request->all(), [
+                'address' => 'required|string|max:50',
+                'address2' => 'nullable|string|max:50',
+                'district' => 'required|string|max:20',
+                'city_id' => 'required|integer|exists:city,city_id',
+                'postal_code' => 'nullable|string|max:10',  // Set max length to 10
+                'phone' => 'required|string|max:20',
             ]);
 
-            // Return error response
+            if ($validator->fails()) {
+                return response()->json([
+                    'error' => 'Validation failed',
+                    'details' => $validator->errors()
+                ], 422);
+            }
+
+            // Update address
+            DB::table('address')
+                ->where('address_id', $id)
+                ->update([
+                    'address' => $request->address,
+                    'address2' => $request->address2,
+                    'district' => $request->district,
+                    'city_id' => $request->city_id,
+                    'postal_code' => $request->postal_code ? substr($request->postal_code, 0, 10) : null, // Enforce limit here too
+                    'phone' => $request->phone,
+                    'last_update' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Address updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating address: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to update address',
                 'message' => $e->getMessage()

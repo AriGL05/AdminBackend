@@ -177,7 +177,7 @@ class DashboardController extends Controller
      * Display tables based on the selected type.
      *
      * @param string|null $tipo
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function tablas($tipo = null)
     {
@@ -200,15 +200,15 @@ class DashboardController extends Controller
                 $titulo = 'Direcciones';
                 break;
             case 'staff':
-                // Debug information to verify user authentication and role
-                if (Auth::check()) {
-                    \Log::info('User authenticated: ' . Auth::user()->name . ' with rol_id: ' . Auth::user()->rol_id);
-                } else {
-                    \Log::info('User not authenticated');
+                // Block access to staff data for guests
+                if (!Auth::check()) {
+                    \Log::warning('Guest attempted to access staff section');
+                    return redirect()->route('login')
+                        ->with('error', 'Please login to access the staff section');
                 }
 
                 // Check if user is admin
-                if (!Auth::check() || Auth::user()->rol_id != 1) {
+                if (Auth::check() && Auth::user()->rol_id != 1) {
                     \Log::warning('Access denied to staff section for user');
                     return redirect()->route('dashboard')
                         ->with('error', 'No tienes permiso para acceder a esta área de personal.');

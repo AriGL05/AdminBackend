@@ -17,8 +17,32 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // Check if user is authenticated and has rol_id = 1 (Admin)
-        if (!Auth::check() || Auth::user()->rol_id != 1) {
+        // Debug logging
+        \Log::info('AdminMiddleware: checking authorization');
+
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            \Log::warning('AdminMiddleware: User not authenticated');
+
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Unauthorized. Authentication required.'], 401);
+            }
+
+            return redirect()->route('login')
+                ->with('error', 'Por favor inicia sesión para acceder a esta área.');
+        }
+
+        // Check if user has admin role
+        $user = Auth::user();
+        \Log::info('AdminMiddleware: User ' . $user->id . ' has role_id: ' .
+            ($user->rol_id ?? 'null') . ', role_id: ' . ($user->role_id ?? 'null'));
+
+        // Check both rol_id and role_id columns
+        $isAdmin = ($user->rol_id == 1 || $user->role_id == 1);
+
+        if (!$isAdmin) {
+            \Log::warning('AdminMiddleware: User ' . $user->id . ' is not an admin');
+
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Unauthorized. Administrator access required.'], 403);
             }

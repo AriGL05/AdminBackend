@@ -67,6 +67,6 @@ class Kernel extends HttpKernel
         'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'client' => \App\Http\Middleware\ClientMiddleware::class,
-        'view' => \App\Http\Middleware\GuestMiddleware::class,
+        'guest.view' => \App\Http\Middleware\GuestMiddleware::class, // Renamed for clarity
     ];
 }

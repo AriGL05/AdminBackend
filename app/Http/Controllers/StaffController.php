@@ -118,18 +118,66 @@ class StaffController extends Controller
      */
     public function edit($id)
     {
-        $staff = DB::table('staff')
-            ->where('staff_id', $id)
-            ->first();
+        try {
+            // Check if the staff record exists first
+            $staffExists = DB::table('staff')->where('staff_id', $id)->exists();
 
-        if (!$staff) {
-            return response()->json(['error' => 'Staff member not found'], 404);
+            if (!$staffExists) {
+                return response()->json(['error' => 'Staff member not found'], 404);
+            }
+
+            // Get all column names from the staff table
+            $columns = DB::select('SHOW COLUMNS FROM staff');
+            $columnNames = array_map(function($col) {
+                return $col->Field;
+            }, $columns);
+
+            \Log::info('Staff table columns: ' . implode(', ', $columnNames));
+
+            // Use the query builder to select only existing columns
+            $query = DB::table('staff')->where('staff_id', $id);
+
+            // Fetch the staff record
+            $staff = $query->first();
+
+            if (!$staff) {
+                return response()->json(['error' => 'Staff member not found'], 404);
+            }
+
+            // Convert to array and sanitize
+            $staffArray = (array)$staff;
+
+            // Don't send the password hash
+            if (isset($staffArray['password'])) {
+                unset($staffArray['password']);
+            }
+
+            // Handle possible column name differences (rol_id vs role_id)
+            if (!isset($staffArray['rol_id']) && isset($staffArray['role_id'])) {
+                $staffArray['rol_id'] = $staffArray['role_id'];
+            }
+
+            // Sanitize any string values for UTF-8
+            foreach ($staffArray as $key => $value) {
+                if (is_string($value)) {
+                    $staffArray[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                }
+            }
+
+            // Convert back to object
+            $staff = (object)$staffArray;
+
+            return response()->json($staff);
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving staff for editing: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'error' => 'Error retrieving staff data',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
-
-        // Don't send the password hash
-        unset($staff->password);
-
-        return response()->json($staff);
     }
 
     /**

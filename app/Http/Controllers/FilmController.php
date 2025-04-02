@@ -12,6 +12,7 @@ use App\Models\Film_Text;
 use App\Models\Language;
 use App\Models\Rental;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class FilmController extends Controller
 {
@@ -56,51 +57,118 @@ class FilmController extends Controller
     }
     public function update(Request $request, int $id)
     {
-        $film = Film::find($id);
-        if (!$film) {
-            return response()->json(["msg" => "film no encontrado"], 404);
-        }
-        $request->validate([
-            "title" => "required|min:3|max:128",
-            "release_year" => "required",
-            'language_id' => 'required',
-            'length' => 'required',
-            'category_id' => 'required',
-        ]);
-        $film->title = $request->get('title');
-        $film->release_year = $request->get('release_year');
-        $film->language_id = $request->get('language_id');
-        $film->rental_duration = 4;
-        $film->length = $request->get('length');
-        $film->rental_rate = 0.99;
-        $film->replacement_cost = 20.50;
-        $film->save();
+        try {
+            // Find the film or return 404
+            $film = Film::find($id);
+            if (!$film) {
+                return response()->json(["error" => "Film not found"], 404);
+            }
 
-        $connect = Film_Category::where('film_id', $film->film_id)->first();
-        if (!$connect) {
-            $connect = new Film_Category();
-            $connect->film_id = $film->film_id;
-        }
-        $connect->category_id = $request->get('category_id');
-        $connect->save();
+            // Validate the request
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                "title" => "required|min:3|max:128",
+                "description" => "required",
+                "release_year" => "required|numeric|min:1900|max:2099",
+                'language_id' => 'required|exists:language,language_id',
+                'length' => 'required|numeric|min:1',
+                'rental_duration' => 'required|numeric|min:1',
+                'rental_rate' => 'required|numeric|min:0',
+                'replacement_cost' => 'required|numeric|min:0',
+                'rating' => 'nullable|in:G,PG,PG-13,R,NC-17',
+                'special_features' => 'nullable|string',
+            ]);
 
-        return response()->json(['success' => true, 'message' => 'Film updated successfully']);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            }
+
+            // Update the film
+            $film->title = $request->title;
+            $film->description = $request->description;
+            $film->release_year = $request->release_year;
+            $film->language_id = $request->language_id;
+            $film->original_language_id = $request->original_language_id;
+            $film->rental_duration = $request->rental_duration;
+            $film->rental_rate = $request->rental_rate;
+            $film->length = $request->length;
+            $film->replacement_cost = $request->replacement_cost;
+            $film->rating = $request->rating;
+            $film->special_features = $request->special_features;
+            $film->last_update = now();
+
+            $film->save();
+
+            // Handle categories if provided
+            if ($request->has('categories')) {
+                // Delete existing categories
+                Film_Category::where('film_id', $id)->delete();
+
+                // Add new categories
+                $categories = $request->categories;
+                if (is_array($categories)) {
+                    foreach ($categories as $categoryId) {
+                        Film_Category::create([
+                            'film_id' => $id,
+                            'category_id' => $categoryId,
+                            'last_update' => now()
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Film updated successfully',
+                'film_id' => $film->film_id
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating film: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to update film',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-    public function edit(int $id)
+
+    /**
+     * Get film data for editing.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
     {
-        $film = Film::with('language:language_id,name')->find($id);
-        if (!$film) {
-            return response()->json(["msg" => "film no encontrado"], 404);
-        }
+        try {
+            // Get film with basic details
+            $film = DB::table('film')
+                ->where('film_id', $id)
+                ->first();
 
-        // Get the associated category
-        $filmCategory = Film_Category::where('film_id', $id)->first();
-        if ($filmCategory) {
-            $film->category_id = $filmCategory->category_id;
-        }
+            if (!$film) {
+                return response()->json(['error' => 'Film not found'], 404);
+            }
 
-        return response()->json($film);
+            // Get film categories
+            $categories = DB::table('film_category')
+                ->join('category', 'film_category.category_id', '=', 'category.category_id')
+                ->where('film_category.film_id', $id)
+                ->select('category.category_id', 'category.name')
+                ->get();
+
+            // Add the categories to the film data
+            $filmData = (array)$film;
+            $filmData['categories'] = $categories;
+
+            return response()->json($filmData);
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving film data: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error retrieving film data',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
+
     public function destroy(int $id)
     {
         $film = Film::find($id);

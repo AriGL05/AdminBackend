@@ -365,12 +365,24 @@
     const tipo = '{{ $tipo ?? "" }}';
     console.log(`Editing ${tipo} with ID: ${id}`); // Debug logging
 
+    // Check if user is logged in, redirect to login if not
+    @if(!Auth::check())
+        window.location.href = "{{ route('login') }}?redirect={{ url()->current() }}";
+        return;
+    @endif
+
     // Use our dynamic edit route for all item types
     window.location.href = `/edit/${tipo}/${id}`;
   }
 
   function deleteItem(id) {
     const tipo = '{{ $tipo ?? "" }}';
+
+    // Check if user is logged in, redirect to login if not
+    @if(!Auth::check())
+        window.location.href = "{{ route('login') }}?redirect={{ url()->current() }}";
+        return;
+    @endif
 
     // Special handling for staff table
     if (tipo === 'staff') {
