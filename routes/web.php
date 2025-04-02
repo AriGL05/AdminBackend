@@ -268,24 +268,25 @@ Route::get('/debug/staff-encoding', function () {
             }
         }
 
+        // Create sanitized example
+        $sanitizedExample = null;
+        if (count($staff) > 0) {
+            $firstMember = (array)$staff[0];
+            $sanitized = [];
+            foreach ($firstMember as $key => $value) {
+                if (is_string($value)) {
+                    $sanitized[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                } else {
+                    $sanitized[$key] = $value;
+                }
+            }
+            $sanitizedExample = $sanitized;
+        }
+
         return response()->json([
             'has_encoding_issues' => count($encodingIssues) > 0,
             'issues' => $encodingIssues,
-            'sanitization_example' => function() use ($staff) {
-                if (count($staff) > 0) {
-                    $firstMember = (array)$staff[0];
-                    $sanitized = [];
-                    foreach ($firstMember as $key => $value) {
-                        if (is_string($value)) {
-                            $sanitized[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-                        } else {
-                            $sanitized[$key] = $value;
-                        }
-                    }
-                    return $sanitized;
-                }
-                return null;
-            }
+            'sanitization_example' => $sanitizedExample
         ]);
     } catch (\Exception $e) {
         return response()->json([

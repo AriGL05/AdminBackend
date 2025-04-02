@@ -37,7 +37,7 @@ class StaffController extends Controller
             $staffCount = DB::table('staff')->count();
             \Log::info('Staff count: ' . $staffCount);
 
-            // Get staff without joins first for troubleshooting
+            // Get staff data without joins first for troubleshooting
             $simpleStaff = DB::table('staff')
                 ->select('staff_id', 'first_name', 'last_name', 'email', 'active', 'rol_id')
                 ->get();
@@ -54,7 +54,7 @@ class StaffController extends Controller
                         $sanitizedMember[$key] = $value;
                     }
                 }
-                $sanitizedStaff[] = $sanitizedMember;
+                $sanitizedStaff[] = (object)$sanitizedMember;
             }
 
             return response()->json($sanitizedStaff);
