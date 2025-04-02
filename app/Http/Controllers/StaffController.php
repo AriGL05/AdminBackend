@@ -39,14 +39,14 @@ class StaffController extends Controller
 
             // Get staff data without joins first for troubleshooting
             $simpleStaff = DB::table('staff')
-                ->select('staff_id', 'first_name', 'last_name', 'email', 'active', 'rol_id')
+                ->select('staff_id', 'first_name', 'last_name', 'username', 'email', 'active', 'rol_id')
                 ->get();
 
             // Apply UTF-8 encoding check and sanitization
             $sanitizedStaff = [];
             foreach ($simpleStaff as $member) {
                 $sanitizedMember = [];
-                foreach ((array)$member as $key => $value) {
+                foreach ((array) $member as $key => $value) {
                     if (is_string($value)) {
                         // Check if valid UTF-8, otherwise replace with sanitized version
                         $sanitizedMember[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
@@ -54,7 +54,7 @@ class StaffController extends Controller
                         $sanitizedMember[$key] = $value;
                     }
                 }
-                $sanitizedStaff[] = (object)$sanitizedMember;
+                $sanitizedStaff[] = (object) $sanitizedMember;
             }
 
             return response()->json($sanitizedStaff);
@@ -128,7 +128,7 @@ class StaffController extends Controller
 
             // Get all column names from the staff table
             $columns = DB::select('SHOW COLUMNS FROM staff');
-            $columnNames = array_map(function($col) {
+            $columnNames = array_map(function ($col) {
                 return $col->Field;
             }, $columns);
 
@@ -145,7 +145,7 @@ class StaffController extends Controller
             }
 
             // Convert to array and sanitize
-            $staffArray = (array)$staff;
+            $staffArray = (array) $staff;
 
             // Don't send the password hash
             if (isset($staffArray['password'])) {
@@ -165,7 +165,7 @@ class StaffController extends Controller
             }
 
             // Convert back to object
-            $staff = (object)$staffArray;
+            $staff = (object) $staffArray;
 
             return response()->json($staff);
         } catch (\Exception $e) {
@@ -198,7 +198,6 @@ class StaffController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:45',
             'last_name' => 'required|string|max:45',
-            'address_id' => 'required|integer|exists:address,address_id',
             'email' => [
                 'required',
                 'string',
@@ -206,7 +205,6 @@ class StaffController extends Controller
                 'max:50',
                 Rule::unique('staff')->ignore($id, 'staff_id')
             ],
-            'store_id' => 'required|integer|exists:store,store_id',
             'active' => 'required|boolean',
             'username' => [
                 'required',
@@ -225,9 +223,7 @@ class StaffController extends Controller
         $updateData = [
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
-            'address_id' => $request->address_id,
             'email' => $request->email,
-            'store_id' => $request->store_id,
             'active' => $request->active,
             'username' => $request->username,
             'rol_id' => $request->rol_id,
