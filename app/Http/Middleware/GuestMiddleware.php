@@ -17,13 +17,14 @@ class GuestMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check() || (Auth::check() && Auth::user()->role === 'guest')) {
+        if (!Auth::check()) {
+            // Allow GET and HEAD requests
             if ($request->isMethod('GET') || $request->isMethod('HEAD')) {
                 return $next($request);
             } else {
-                return redirect()->route('dashboard');
+                return redirect()->route('login');
             }
         }
-        return redirect()->route('dashboard');
+        return $next($request);
     }
 }
