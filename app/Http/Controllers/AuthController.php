@@ -27,12 +27,25 @@ class AuthController extends Controller
     public function __construct()
     {
         // Skip JWT middleware for these methods
-        $this->middleware('auth:api', ['except' => [
-            'login', 'register', 'showLoginForm', 'showRegistrationForm',
-            'show2faForm', 'verify2fa', 'resend2fa', 'logout',
-            'forgotPassword', 'sendPasswordCode', 'showResetPassword', 'resetPassword',
-            'apiLogin', 'apiLogout', 'refresh'
-        ]]);
+        $this->middleware('auth:api', [
+            'except' => [
+                'login',
+                'register',
+                'showLoginForm',
+                'showRegistrationForm',
+                'show2faForm',
+                'verify2fa',
+                'resend2fa',
+                'logout',
+                'forgotPassword',
+                'sendPasswordCode',
+                'showResetPassword',
+                'resetPassword',
+                'apiLogin',
+                'apiLogout',
+                'refresh'
+            ]
+        ]);
     }
 
     /**
@@ -206,10 +219,7 @@ class AuthController extends Controller
                 return back()->with('error', 'Failed to create staff account. Please try again.');
             }
 
-            // After registration, automatically log in the staff
-            Auth::loginUsingId($staff->staff_id);
-
-            return redirect()->route('dashboard');
+            return redirect()->route('login');
         } catch (\Exception $e) {
             Log::error('Staff registration failed: ' . $e->getMessage());
             return back()->with('error', 'Registration failed: ' . $e->getMessage());
@@ -318,8 +328,10 @@ class AuthController extends Controller
             }
 
             // Check if the code is valid
-            if (!Hash::check($request->code, $staff->two_factor_code) ||
-                now()->gt($staff->two_factor_expires_at)) {
+            if (
+                !Hash::check($request->code, $staff->two_factor_code) ||
+                now()->gt($staff->two_factor_expires_at)
+            ) {
                 return back()->withErrors(['code' => 'Invalid or expired code.']);
             }
 
